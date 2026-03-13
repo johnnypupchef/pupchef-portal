@@ -29,18 +29,30 @@ export default function AuthCallbackPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center gap-4">
-        <div className="text-3xl">❌</div>
-        <h2 className="text-lg font-semibold text-gray-900">Login failed</h2>
-        <p className="text-sm text-gray-500">{error}</p>
-        <a href="/login" className="text-sm text-orange-500 font-medium hover:underline">Try again</a>
+      <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 text-center gap-5">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+          <span className="text-2xl">❌</span>
+        </div>
+        <h2 className="font-heading font-extrabold text-xl text-brand">Login failed</h2>
+        <p className="text-sm text-brand/60 font-body max-w-xs">{error}</p>
+        <a
+          href="/login"
+          className="bg-coral text-white rounded-xl px-6 py-3 text-sm font-heading font-bold hover:bg-coral-dark transition-colors"
+        >
+          Try again
+        </a>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-gray-400">
-      Signing you in…
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center gap-4">
+      <div className="inline-flex items-baseline gap-0.5 mb-2">
+        <span className="font-heading font-black text-2xl text-brand">PupChef</span>
+        <span className="font-heading font-black text-2xl text-coral">.</span>
+      </div>
+      <div className="w-8 h-8 border-3 border-coral border-t-transparent rounded-full animate-spin" />
+      <p className="text-sm text-brand/50 font-body">Signing you in…</p>
     </div>
   );
 }

@@ -9,9 +9,11 @@ interface Subscription {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  trial: "bg-blue-100 text-blue-700", active: "bg-green-100 text-green-700",
-  paused: "bg-yellow-100 text-yellow-800", past_due: "bg-red-100 text-red-700",
-  cancelled: "bg-gray-100 text-gray-600",
+  trial: "bg-blue-100 text-blue-700",
+  active: "bg-forest/10 text-forest",
+  paused: "bg-amber-100 text-amber-700",
+  past_due: "bg-red-100 text-red-700",
+  cancelled: "bg-brand/10 text-brand/50",
 };
 
 function formatDate(iso: string) {
@@ -53,7 +55,7 @@ export default function SubscriptionPage() {
     try {
       await api.post("/api/portal/subscription/resume");
       await load();
-      setActionMsg("Subscription resumed!");
+      setActionMsg("Subscription resumed! 🎉");
     } catch (e: unknown) {
       setActionMsg(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -61,70 +63,75 @@ export default function SubscriptionPage() {
     }
   }
 
-  if (loading) return <div className="text-center py-16 text-gray-400">Loading…</div>;
-  if (error) return <div className="text-center py-16 text-red-500">{error}</div>;
+  if (loading) return <div className="text-center py-16 text-brand/40 font-body">Loading…</div>;
+  if (error) return <div className="text-center py-16 text-red-500 font-body">{error}</div>;
+
   if (!sub) return (
-    <div className="text-center py-16 space-y-2">
-      <p className="text-gray-500">No active subscription found.</p>
+    <div className="space-y-5">
+      <h1 className="font-heading font-extrabold text-2xl text-brand">My Plan</h1>
+      <div className="bg-white rounded-2xl border border-cream-dark p-8 text-center">
+        <div className="text-4xl mb-3">🔄</div>
+        <p className="font-body text-brand/50 text-sm">No active subscription found.</p>
+      </div>
     </div>
   );
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">Subscription</h1>
+      <h1 className="font-heading font-extrabold text-2xl text-brand">My Plan</h1>
 
       {actionMsg && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-700">{actionMsg}</div>
+        <div className="bg-forest/10 border border-forest/20 rounded-xl p-3 text-sm text-forest font-body font-medium">
+          {actionMsg}
+        </div>
       )}
 
-      {/* Status card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Plan Status</h2>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[sub.status] ?? "bg-gray-100 text-gray-600"}`}>
+      {/* Hero price card */}
+      <div className="bg-forest rounded-2xl p-6 text-white">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <p className="text-white/60 text-xs font-body uppercase tracking-wide mb-1">Monthly price</p>
+            <p className="font-heading font-black text-4xl">AED {Number(sub.selling_price_total).toFixed(0)}</p>
+          </div>
+          <span className={`text-xs font-heading font-bold px-3 py-1.5 rounded-full ${STATUS_COLORS[sub.status] ?? "bg-white/10 text-white"}`}>
             {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
           </span>
         </div>
-
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-xs text-gray-500 mb-0.5">Monthly price</p>
-            <p className="font-bold text-gray-900 text-lg">AED {Number(sub.selling_price_total).toFixed(0)}</p>
-          </div>
           {sub.trial_price && (
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">Trial price</p>
-              <p className="font-semibold text-gray-900">AED {Number(sub.trial_price).toFixed(0)}</p>
+              <p className="text-white/50 text-xs font-body mb-0.5">Trial price</p>
+              <p className="font-body font-semibold">AED {Number(sub.trial_price).toFixed(0)}</p>
             </div>
           )}
           {sub.trial_ends_at && (
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">Trial ends</p>
-              <p className="font-semibold text-gray-900">{formatDate(sub.trial_ends_at)}</p>
+              <p className="text-white/50 text-xs font-body mb-0.5">Trial ends</p>
+              <p className="font-body font-semibold">{formatDate(sub.trial_ends_at)}</p>
             </div>
           )}
           <div>
-            <p className="text-xs text-gray-500 mb-0.5">Started</p>
-            <p className="font-semibold text-gray-900">{formatDate(sub.created_at)}</p>
+            <p className="text-white/50 text-xs font-body mb-0.5">Started</p>
+            <p className="font-body font-semibold">{formatDate(sub.created_at)}</p>
           </div>
         </div>
       </div>
 
-      {/* Per dog pricing */}
+      {/* Per dog */}
       {sub.dogs.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <h2 className="font-semibold text-gray-900 mb-3">Per Dog Breakdown</h2>
-          <div className="space-y-2">
+        <div className="bg-white rounded-2xl border border-cream-dark shadow-sm p-5">
+          <h2 className="font-heading font-bold text-brand mb-4">Per Dog Breakdown</h2>
+          <div className="space-y-3">
             {sub.dogs.map((d, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span>🐶</span>
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-cream rounded-xl flex items-center justify-center text-lg">🐶</div>
                   <div>
-                    <p className="font-medium text-gray-900">{d.dog_name}</p>
-                    <p className="text-xs text-gray-500">{d.daily_kcal} kcal/day</p>
+                    <p className="font-body font-semibold text-brand text-sm">{d.dog_name}</p>
+                    <p className="text-xs text-brand/50 font-body">{d.daily_kcal} kcal/day</p>
                   </div>
                 </div>
-                <p className="font-semibold text-gray-900">AED {Number(d.discounted_monthly_price).toFixed(0)}/mo</p>
+                <p className="font-heading font-bold text-brand">AED {Number(d.discounted_monthly_price).toFixed(0)}<span className="font-body font-normal text-brand/50 text-xs">/mo</span></p>
               </div>
             ))}
           </div>
@@ -133,29 +140,32 @@ export default function SubscriptionPage() {
 
       {/* Actions */}
       {(sub.status === "active" || sub.status === "trial") && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
-          <h2 className="font-semibold text-gray-900">Manage</h2>
+        <div className="bg-white rounded-2xl border border-cream-dark shadow-sm p-5 space-y-3">
+          <h2 className="font-heading font-bold text-brand">Manage Plan</h2>
+          <p className="text-sm text-brand/60 font-body">Need a break? You can pause anytime and resume when you're ready.</p>
           <button
             onClick={pause}
             disabled={actionLoading}
-            className="w-full border border-gray-300 rounded-xl py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="w-full border-2 border-brand/20 rounded-xl py-3 text-sm font-heading font-bold text-brand/70 hover:bg-cream disabled:opacity-50 transition-colors"
           >
-            {actionLoading ? "Working…" : "⏸ Pause subscription"}
+            {actionLoading ? "Working…" : "⏸  Pause subscription"}
           </button>
-          <p className="text-xs text-gray-400 text-center">Your deliveries will pause until you resume. No charges during pause.</p>
         </div>
       )}
 
       {sub.status === "paused" && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
-          <h2 className="font-semibold text-gray-900">Subscription paused</h2>
-          <p className="text-sm text-gray-500">Your subscription is currently paused. Resume to restart deliveries.</p>
+        <div className="bg-white rounded-2xl border border-cream-dark shadow-sm p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">⏸</span>
+            <h2 className="font-heading font-bold text-brand">Subscription paused</h2>
+          </div>
+          <p className="text-sm text-brand/60 font-body">Your deliveries are paused. Resume anytime to start receiving meals again.</p>
           <button
             onClick={resume}
             disabled={actionLoading}
-            className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:bg-orange-600 disabled:opacity-50"
+            className="w-full bg-coral text-white rounded-xl py-3 text-sm font-heading font-bold hover:bg-coral-dark disabled:opacity-50 transition-colors"
           >
-            {actionLoading ? "Working…" : "▶ Resume subscription"}
+            {actionLoading ? "Working…" : "▶  Resume subscription"}
           </button>
         </div>
       )}

@@ -15,13 +15,23 @@ const STATUS_LABELS: Record<string, string> = {
   trial: "Trial", active: "Active", paused: "Paused", past_due: "Past Due", cancelled: "Cancelled",
 };
 const STATUS_COLORS: Record<string, string> = {
-  trial: "bg-blue-100 text-blue-700", active: "bg-green-100 text-green-700",
-  paused: "bg-yellow-100 text-yellow-800", past_due: "bg-red-100 text-red-700",
-  cancelled: "bg-gray-100 text-gray-600",
+  trial: "bg-blue-100 text-blue-700",
+  active: "bg-forest/10 text-forest",
+  paused: "bg-amber-100 text-amber-700",
+  past_due: "bg-red-100 text-red-700",
+  cancelled: "bg-brand/10 text-brand/50",
 };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-AE", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+}
+
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-white rounded-2xl border border-cream-dark p-5 shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 export default function AccountPage() {
@@ -36,105 +46,112 @@ export default function AccountPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-16 text-gray-400">Loading…</div>;
-  if (error) return <div className="text-center py-16 text-red-500">{error}</div>;
+  if (loading) return <div className="text-center py-16 text-brand/40 font-body">Loading…</div>;
+  if (error) return <div className="text-center py-16 text-red-500 font-body">{error}</div>;
   if (!data) return null;
 
   const { person, dogs, subscription, next_delivery } = data;
-  const fullName = [person.first_name, person.last_name].filter(Boolean).join(" ") || "—";
 
   return (
     <div className="space-y-5">
+      {/* Greeting */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back{person.first_name ? `, ${person.first_name}` : ""}!</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{person.email}</p>
+        <h1 className="font-heading font-extrabold text-2xl text-brand">
+          {person.first_name ? `Hey, ${person.first_name}! 👋` : "Welcome back!"}
+        </h1>
+        <p className="text-sm text-brand/50 font-body mt-0.5">{person.email}</p>
       </div>
 
       {/* Subscription status */}
       {subscription ? (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Your Plan</h2>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[subscription.status] ?? "bg-gray-100 text-gray-600"}`}>
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading font-bold text-brand">Your Plan</h2>
+            <span className={`text-xs font-heading font-bold px-3 py-1 rounded-full ${STATUS_COLORS[subscription.status] ?? "bg-brand/10 text-brand/60"}`}>
               {STATUS_LABELS[subscription.status] ?? subscription.status}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-500 text-xs mb-0.5">Monthly price</p>
-              <p className="font-semibold text-gray-900">AED {Number(subscription.selling_price_total).toFixed(0)}</p>
+              <p className="text-brand/50 text-xs font-body mb-0.5">Monthly price</p>
+              <p className="font-heading font-extrabold text-brand text-xl">AED {Number(subscription.selling_price_total).toFixed(0)}</p>
             </div>
             {subscription.trial_price && (
               <div>
-                <p className="text-gray-500 text-xs mb-0.5">Trial price</p>
-                <p className="font-semibold text-gray-900">AED {Number(subscription.trial_price).toFixed(0)}</p>
+                <p className="text-brand/50 text-xs font-body mb-0.5">Trial price</p>
+                <p className="font-heading font-bold text-brand">AED {Number(subscription.trial_price).toFixed(0)}</p>
               </div>
             )}
             {subscription.trial_ends_at && (
               <div>
-                <p className="text-gray-500 text-xs mb-0.5">Trial ends</p>
-                <p className="font-semibold text-gray-900">{formatDate(subscription.trial_ends_at)}</p>
+                <p className="text-brand/50 text-xs font-body mb-0.5">Trial ends</p>
+                <p className="font-body font-medium text-brand">{formatDate(subscription.trial_ends_at)}</p>
               </div>
             )}
           </div>
-          <Link to="/subscription" className="text-sm text-orange-500 font-medium hover:underline">
-            Manage subscription →
+          <Link to="/subscription" className="inline-block mt-4 text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">
+            Manage plan →
           </Link>
-        </div>
+        </Card>
       ) : (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 text-sm text-orange-700">
-          No active subscription found.
-        </div>
+        <Card className="bg-forest text-white border-forest">
+          <p className="font-body text-sm text-white/80">No active subscription found.</p>
+        </Card>
       )}
 
       {/* Next delivery */}
       {next_delivery && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <h2 className="font-semibold text-gray-900 mb-2">Next Delivery</h2>
-          <p className="text-sm text-gray-700">
-            <span className="font-medium">{formatDate(next_delivery.delivery_date)}</span>
-            <span className="ml-2 text-xs text-gray-500 uppercase">{next_delivery.delivery_type.replace("_", " ")}</span>
-          </p>
-          <Link to="/deliveries" className="text-sm text-orange-500 font-medium hover:underline mt-2 inline-block">
+        <Card>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-heading font-bold text-brand mb-1">Next Delivery</h2>
+              <p className="font-body font-medium text-brand">{formatDate(next_delivery.delivery_date)}</p>
+              <p className="text-xs text-brand/50 font-body uppercase tracking-wide mt-0.5">{next_delivery.delivery_type.replace("_", " ")}</p>
+            </div>
+            <div className="w-12 h-12 bg-coral/10 rounded-xl flex items-center justify-center text-2xl">📦</div>
+          </div>
+          <Link to="/deliveries" className="inline-block mt-4 text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">
             View all deliveries →
           </Link>
-        </div>
+        </Card>
       )}
 
-      {/* Dogs summary */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900">My Dogs</h2>
-          <Link to="/dogs" className="text-sm text-orange-500 font-medium hover:underline">View all →</Link>
+      {/* Dogs */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading font-bold text-brand">My Dogs</h2>
+          <Link to="/dogs" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">View all →</Link>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {dogs.map((dog) => (
-            <div key={dog.id} className="flex items-center gap-3 text-sm">
-              <span className="text-lg">🐶</span>
+            <div key={dog.id} className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-cream rounded-xl flex items-center justify-center text-xl shrink-0">🐶</div>
               <div>
-                <p className="font-medium text-gray-900">{dog.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="font-body font-semibold text-brand text-sm">{dog.name}</p>
+                <p className="text-xs text-brand/50 font-body">
                   {[dog.breed, dog.weight_kg ? `${dog.weight_kg} kg` : null, dog.daily_kcal ? `${dog.daily_kcal} kcal/day` : null].filter(Boolean).join(" · ")}
                 </p>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
-      {/* Profile summary */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
+      {/* Profile */}
+      <Card>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900">Profile</h2>
-          <Link to="/settings" className="text-sm text-orange-500 font-medium hover:underline">Edit →</Link>
+          <h2 className="font-heading font-bold text-brand">Profile</h2>
+          <Link to="/settings" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">Edit →</Link>
         </div>
-        <div className="text-sm text-gray-700 space-y-1">
-          <p>{fullName}</p>
+        <div className="text-sm text-brand/70 font-body space-y-1">
+          {[person.first_name, person.last_name].filter(Boolean).join(" ") && (
+            <p className="font-medium text-brand">{[person.first_name, person.last_name].filter(Boolean).join(" ")}</p>
+          )}
           <p>{person.email}</p>
           {person.phone && <p>{person.phone}</p>}
           {person.area && <p>{person.area}</p>}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

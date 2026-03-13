@@ -3,10 +3,10 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 
 const navItems = [
-  { to: "/account", label: "Account", icon: "👤" },
+  { to: "/account", label: "Overview", icon: "🏠" },
   { to: "/dogs", label: "My Dogs", icon: "🐾" },
   { to: "/deliveries", label: "Deliveries", icon: "📦" },
-  { to: "/subscription", label: "Subscription", icon: "🔄" },
+  { to: "/subscription", label: "Plan", icon: "🔄" },
   { to: "/settings", label: "Settings", icon: "⚙️" },
 ];
 
@@ -20,22 +20,29 @@ export default function Layout() {
     navigate("/login");
   }
 
-  const fullName = [person?.first_name, person?.last_name].filter(Boolean).join(" ") || person?.email || "My Account";
+  const initials = [person?.first_name?.[0], person?.last_name?.[0]].filter(Boolean).join("").toUpperCase() || "?";
+  const fullName = [person?.first_name, person?.last_name].filter(Boolean).join(" ") || person?.email || "";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-cream flex flex-col pb-16 sm:pb-0">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🐾</span>
-            <span className="font-bold text-gray-900 text-lg">PupChef</span>
+      <header className="bg-white border-b border-cream-dark sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          {/* Logo */}
+          <div className="inline-flex items-baseline gap-0.5">
+            <span className="font-heading font-black text-xl text-brand tracking-tight">PupChef</span>
+            <span className="font-heading font-black text-xl text-coral">.</span>
           </div>
+
+          {/* Right: user + signout */}
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600 hidden sm:block">{fullName}</span>
+            <span className="hidden sm:block text-sm text-brand/60 font-body">{fullName}</span>
+            <div className="w-8 h-8 bg-forest rounded-full flex items-center justify-center">
+              <span className="text-xs font-heading font-bold text-white">{initials}</span>
+            </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-500 hover:text-gray-800 font-medium"
+              className="text-sm text-brand/50 hover:text-brand font-body transition-colors"
             >
               Sign out
             </button>
@@ -43,23 +50,23 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Bottom nav (mobile) / Side nav (desktop) */}
-      <div className="flex flex-1 max-w-3xl mx-auto w-full px-4 py-6 gap-6">
+      {/* Content + sidebar */}
+      <div className="flex flex-1 max-w-4xl mx-auto w-full px-4 py-6 gap-8">
         {/* Sidebar — desktop */}
-        <nav className="hidden sm:flex flex-col gap-1 w-44 shrink-0">
+        <nav className="hidden sm:flex flex-col gap-1 w-48 shrink-0 pt-1">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-body font-medium transition-colors ${
                   isActive
-                    ? "bg-orange-50 text-orange-600"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-forest text-white"
+                    : "text-brand/70 hover:bg-cream-dark hover:text-brand"
                 }`
               }
             >
-              <span>{item.icon}</span>
+              <span className="text-base">{item.icon}</span>
               {item.label}
             </NavLink>
           ))}
@@ -72,18 +79,18 @@ export default function Layout() {
       </div>
 
       {/* Bottom nav — mobile */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-cream-dark flex z-10">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center py-2 text-xs font-medium transition ${
-                isActive ? "text-orange-600" : "text-gray-500"
+              `flex-1 flex flex-col items-center py-2.5 text-xs font-body font-medium transition-colors ${
+                isActive ? "text-coral" : "text-brand/40"
               }`
             }
           >
-            <span className="text-lg">{item.icon}</span>
+            <span className="text-lg mb-0.5">{item.icon}</span>
             {item.label}
           </NavLink>
         ))}
