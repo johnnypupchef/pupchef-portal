@@ -19,6 +19,7 @@ const BODY_LABELS: Record<string, string> = {
 // Maps CRM breed name → exact filename in /breeds/ (without .png)
 const BREED_IMAGE_MAP: Record<string, string> = {
   "Alaskan Malamute": "alaskan malamute",
+  "Akita": "akita",
   "American Akita": "akita",
   "American Cocker Spaniel": "cocker spaniel",
   "American Eskimo Dog": "American Eskimo",
@@ -148,8 +149,8 @@ export default function DogsPage() {
           <div className="p-4">
             {/* Image + stats row */}
             <div className="flex gap-3 mb-4">
-              {/* Breed image */}
-              <div className="flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden bg-cream border border-cream-dark">
+              {/* Breed image — stretches to match full height of stats on the right */}
+              <div className="flex-shrink-0 w-28 self-stretch rounded-xl overflow-hidden bg-cream border border-cream-dark">
                 <img
                   src={getBreedImageSrc(dog.breed)}
                   alt={dog.breed ?? "Dog"}
@@ -158,11 +159,11 @@ export default function DogsPage() {
                 />
               </div>
 
-              {/* Stats */}
-              <div className="flex-1 grid grid-cols-2 gap-2">
+              {/* Stats — 2×2 grid + body condition spanning full width */}
+              <div className="flex-1 grid grid-cols-2 gap-2 content-start">
                 {[
                   { label: "Breed", value: dog.breed ?? "—" },
-                  { label: "Daily kcal", value: dog.daily_kcal ?? "—" },
+                  { label: "Daily kcal", value: dog.daily_kcal != null ? Math.round(dog.daily_kcal) : "—" },
                   { label: "Weight", value: dog.weight_kg ? `${dog.weight_kg} kg` : "—" },
                   { label: "Activity", value: dog.activity_level ? (ACTIVITY_LABELS[dog.activity_level] ?? dog.activity_level) : "—" },
                 ].map(({ label, value }) => (
@@ -171,16 +172,13 @@ export default function DogsPage() {
                     <p className="font-body font-semibold text-brand text-xs leading-tight">{String(value)}</p>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Body condition row */}
-            <div className="grid grid-cols-1 gap-2 mb-4">
-              <div className="bg-cream rounded-xl px-3 py-2">
-                <p className="text-[10px] text-brand/50 font-body mb-0.5">Body condition</p>
-                <p className="font-body font-semibold text-brand text-sm">
-                  {dog.body_condition ? (BODY_LABELS[dog.body_condition] ?? dog.body_condition) : "—"}
-                </p>
+                {/* Body condition spans both columns, aligned with stats above */}
+                <div className="col-span-2 bg-cream rounded-xl px-2.5 py-2">
+                  <p className="text-[10px] text-brand/50 font-body mb-0.5 leading-none">Body condition</p>
+                  <p className="font-body font-semibold text-brand text-xs leading-tight">
+                    {dog.body_condition ? (BODY_LABELS[dog.body_condition] ?? dog.body_condition) : "—"}
+                  </p>
+                </div>
               </div>
             </div>
 
