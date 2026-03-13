@@ -36,11 +36,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4">
       {/* Logo */}
       <div className="text-center mb-10">
-        <div className="inline-flex items-baseline gap-0.5">
-          <span className="font-heading font-black text-3xl text-brand tracking-tight">PupChef</span>
-          <span className="font-heading font-black text-3xl text-coral">.</span>
-        </div>
-        <p className="text-sm text-brand/50 mt-1 font-body">My Account</p>
+        <img src="/logo.png" alt="PupChef" className="h-10 w-auto mx-auto mb-2" />
+        <p className="text-sm text-brand/50 font-body">My Account</p>
       </div>
 
       <div className="w-full max-w-sm">

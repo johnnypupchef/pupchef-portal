@@ -29,10 +29,7 @@ export default function Layout() {
       <header className="bg-white border-b border-cream-dark sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           {/* Logo */}
-          <div className="inline-flex items-baseline gap-0.5">
-            <span className="font-heading font-black text-xl text-brand tracking-tight">PupChef</span>
-            <span className="font-heading font-black text-xl text-coral">.</span>
-          </div>
+          <img src="/logo.png" alt="PupChef" className="h-7 w-auto" />
 
           {/* Right: user + signout */}
           <div className="flex items-center gap-3">

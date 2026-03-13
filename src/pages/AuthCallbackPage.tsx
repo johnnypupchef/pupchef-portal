@@ -47,10 +47,7 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center gap-4">
-      <div className="inline-flex items-baseline gap-0.5 mb-2">
-        <span className="font-heading font-black text-2xl text-brand">PupChef</span>
-        <span className="font-heading font-black text-2xl text-coral">.</span>
-      </div>
+      <img src="/logo.png" alt="PupChef" className="h-8 w-auto mb-2" />
       <div className="w-8 h-8 border-3 border-coral border-t-transparent rounded-full animate-spin" />
       <p className="text-sm text-brand/50 font-body">Signing you in…</p>
     </div>

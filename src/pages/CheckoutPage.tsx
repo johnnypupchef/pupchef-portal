@@ -85,10 +85,7 @@ export default function CheckoutPage() {
           Check your email for a login link to manage your account.
         </p>
       </div>
-      <div className="inline-flex items-baseline gap-0.5 mt-4">
-        <span className="font-heading font-black text-2xl text-brand">PupChef</span>
-        <span className="font-heading font-black text-2xl text-coral">.</span>
-      </div>
+      <img src="/logo.png" alt="PupChef" className="h-8 w-auto mt-4" />
     </div>
   );
 
@@ -101,11 +98,8 @@ export default function CheckoutPage() {
       <div className="max-w-md mx-auto space-y-5">
         {/* Logo */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-baseline gap-0.5">
-            <span className="font-heading font-black text-2xl text-brand">PupChef</span>
-            <span className="font-heading font-black text-2xl text-coral">.</span>
-          </div>
-          <p className="text-sm text-brand/50 font-body mt-1">
+          <img src="/logo.png" alt="PupChef" className="h-9 w-auto mx-auto mb-2" />
+          <p className="text-sm text-brand/50 font-body">
             Hey {person.first_name ?? "there"}, confirm your order below
           </p>
         </div>
