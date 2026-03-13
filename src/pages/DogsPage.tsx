@@ -16,6 +16,77 @@ const BODY_LABELS: Record<string, string> = {
   underweight: "Underweight", lean: "Lean", ideal: "Ideal", rounded: "Rounded", obese: "Obese",
 };
 
+// Maps CRM breed name → exact filename in /breeds/ (without .png)
+const BREED_IMAGE_MAP: Record<string, string> = {
+  "Alaskan Malamute": "alaskan malamute",
+  "American Akita": "akita",
+  "American Cocker Spaniel": "cocker spaniel",
+  "American Eskimo Dog": "American Eskimo",
+  "American Pit Bull Terrier": "American pitt bull",
+  "Australian Shepherd": "Australian shepherd",
+  "Beagle": "breagle",
+  "Belgian Malinois": "Belgian malinois",
+  "Bernese Mountain Dog": "Bernese mauntain dog",
+  "Bichon Frise": "Bichon Frise",
+  "Border Collie": "Border Colie",
+  "Boxer": "boxer",
+  "Bull Terrier": "Bull terrier",
+  "Bullmastiff": "bullmastiff",
+  "Cane Corso": "cane corso",
+  "Cavalier King Charles Spaniel": "cavaalier king chales spaniel",
+  "Chihuahua": "chihuahua",
+  "Chow Chow": "chow chow",
+  "Cocker Spaniel": "cocker spaniel",
+  "Dachshund": "dachshund",
+  "Dalmatian": "dalmatian",
+  "Doberman Pinscher": "doberman",
+  "English Bulldog": "english bulldog",
+  "English Cocker Spaniel": "cocker spaniel",
+  "German Shepherd": "german shepherd",
+  "Golden Retriever": "golden retriver",
+  "Goldendoodle": "goldendoodle",
+  "Great Dane": "great dane",
+  "Greyhound": "grayhound",
+  "Italian Greyhound": "grayhound",
+  "Jack Russell Terrier": "jack russell terrier",
+  "Japanese Spitz": "japanese spitz",
+  "Labradoodle": "labradoofle",
+  "Labrador Retriever": "labrador retriver",
+  "Leonberger": "leonberger",
+  "Lhasa Apso": "lhasa apso",
+  "Maltese": "maltese",
+  "Miniature Schnauzer": "miniature schnauzer",
+  "Newfoundland": "newfoundland",
+  "Papillon": "papillion",
+  "Pekingese": "pekingese",
+  "Pomeranian": "pomeranian",
+  "Poodle (Miniature)": "poodle",
+  "Poodle (Standard)": "poodle",
+  "Poodle (Toy)": "poodle",
+  "Rhodesian Ridgeback": "rhodesian ridgeback",
+  "Rottweiler": "rottweiler",
+  "Saint Bernard": "saint bernard",
+  "Saluki": "saluki",
+  "Samoyed": "samoyed",
+  "Shiba Inu": "shiba inu",
+  "Shih Tzu": "shih tzu",
+  "Siberian Husky": "siberian husky",
+  "Staffordshire Bull Terrier": "staffordshire bull terrier",
+  "Weimaraner": "Weimaraner",
+  "Whippet": "Whippet",
+  "Yorkshire Terrier": "yorkshire ",
+};
+
+const FALLBACK_IMG = "/breeds/falbback.png";
+
+function getBreedImageSrc(breed: string | null): string {
+  if (!breed) return FALLBACK_IMG;
+  // Multi-breed dogs (comma-separated) use fallback
+  if (breed.includes(",")) return FALLBACK_IMG;
+  const filename = BREED_IMAGE_MAP[breed.trim()];
+  return filename ? `/breeds/${filename}.png` : FALLBACK_IMG;
+}
+
 export default function DogsPage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,34 +136,56 @@ export default function DogsPage() {
       {dogs.map((dog) => (
         <div key={dog.id} className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
           {/* Dog header */}
-          <div className="bg-forest px-5 py-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">🐶</div>
+          <div className="bg-forest px-5 py-3.5 flex items-center gap-3">
             <div>
-              <h2 className="font-heading font-extrabold text-white text-lg">{dog.name}</h2>
-              <p className="text-xs text-white/60 font-body">
-                {[dog.breed, dog.sex, dog.age_months ? `${Math.floor(dog.age_months / 12)}y ${dog.age_months % 12}m` : null].filter(Boolean).join(" · ")}
+              <h2 className="font-heading font-extrabold text-white text-lg leading-tight">{dog.name}</h2>
+              <p className="text-xs text-white/60 font-body mt-0.5">
+                {[dog.sex, dog.age_months ? `${Math.floor(dog.age_months / 12)}y ${dog.age_months % 12}m` : null, dog.neutered === "yes" ? "neutered" : null].filter(Boolean).join(" · ")}
               </p>
             </div>
           </div>
 
-          <div className="p-5 space-y-4">
-            {/* Stats grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Weight", value: dog.weight_kg ? `${dog.weight_kg} kg` : "—" },
-                { label: "Daily kcal", value: dog.daily_kcal ?? "—" },
-                { label: "Activity", value: dog.activity_level ? (ACTIVITY_LABELS[dog.activity_level] ?? dog.activity_level) : "—" },
-                { label: "Body condition", value: dog.body_condition ? (BODY_LABELS[dog.body_condition] ?? dog.body_condition) : "—" },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-cream rounded-xl p-3">
-                  <p className="text-xs text-brand/50 font-body mb-0.5">{label}</p>
-                  <p className="font-body font-semibold text-brand text-sm">{String(value)}</p>
-                </div>
-              ))}
+          <div className="p-4">
+            {/* Image + stats row */}
+            <div className="flex gap-3 mb-4">
+              {/* Breed image */}
+              <div className="flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden bg-cream border border-cream-dark">
+                <img
+                  src={getBreedImageSrc(dog.breed)}
+                  alt={dog.breed ?? "Dog"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = FALLBACK_IMG; }}
+                />
+              </div>
+
+              {/* Stats */}
+              <div className="flex-1 grid grid-cols-2 gap-2">
+                {[
+                  { label: "Breed", value: dog.breed ?? "—" },
+                  { label: "Daily kcal", value: dog.daily_kcal ?? "—" },
+                  { label: "Weight", value: dog.weight_kg ? `${dog.weight_kg} kg` : "—" },
+                  { label: "Activity", value: dog.activity_level ? (ACTIVITY_LABELS[dog.activity_level] ?? dog.activity_level) : "—" },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-cream rounded-xl px-2.5 py-2">
+                    <p className="text-[10px] text-brand/50 font-body mb-0.5 leading-none">{label}</p>
+                    <p className="font-body font-semibold text-brand text-xs leading-tight">{String(value)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Body condition row */}
+            <div className="grid grid-cols-1 gap-2 mb-4">
+              <div className="bg-cream rounded-xl px-3 py-2">
+                <p className="text-[10px] text-brand/50 font-body mb-0.5">Body condition</p>
+                <p className="font-body font-semibold text-brand text-sm">
+                  {dog.body_condition ? (BODY_LABELS[dog.body_condition] ?? dog.body_condition) : "—"}
+                </p>
+              </div>
             </div>
 
             {dog.health_issues.length > 0 && (
-              <div>
+              <div className="mb-4">
                 <p className="text-xs text-brand/50 font-body mb-2">Health notes</p>
                 <div className="flex flex-wrap gap-1.5">
                   {dog.health_issues.map((h) => (
