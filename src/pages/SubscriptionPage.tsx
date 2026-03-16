@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import DogAvatar from "../components/DogAvatar";
 
-interface SubDog { dog_name: string; daily_kcal: number; discounted_monthly_price: string; household_discount_rate: number; dog_index: number }
+interface SubDog { dog_name: string; dog_breed: string | null; daily_kcal: number; discounted_monthly_price: string; household_discount_rate: number; dog_index: number }
 interface Subscription {
   id: string; status: string; selling_price_total: string; trial_price: string | null;
   trial_ends_at: string | null; created_at: string;
@@ -125,7 +126,7 @@ export default function SubscriptionPage() {
             {sub.dogs.map((d, i) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-cream rounded-xl flex items-center justify-center text-lg">🐶</div>
+                  <DogAvatar breed={d.dog_breed} size="sm" />
                   <div>
                     <p className="font-body font-semibold text-brand text-sm">{d.dog_name}</p>
                     <p className="text-xs text-brand/50 font-body">{Math.round(d.daily_kcal)} kcal/day</p>

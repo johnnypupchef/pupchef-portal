@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { getBreedImageSrc, FALLBACK_IMG } from "../lib/breeds";
 
 // Drag-to-scroll container — works with mouse on desktop and touch on mobile
 function DragScroll({ children }: { children: React.ReactNode }) {
@@ -86,77 +87,6 @@ const SLOT_LABELS: Record<string, string> = {
 const SLOT_COLORS: Record<string, string> = {
   regular_1: "bg-blue-500", regular_2: "bg-emerald-500", regular_3: "bg-purple-500", cheat: "bg-amber-500",
 };
-
-// Maps CRM breed name → exact filename in /breeds/ (without .png)
-const BREED_IMAGE_MAP: Record<string, string> = {
-  "Alaskan Malamute": "alaskan malamute",
-  "Akita": "akita",
-  "American Akita": "akita",
-  "American Cocker Spaniel": "cocker spaniel",
-  "American Eskimo Dog": "American Eskimo",
-  "American Pit Bull Terrier": "American pitt bull",
-  "Australian Shepherd": "Australian shepherd",
-  "Beagle": "breagle",
-  "Belgian Malinois": "Belgian malinois",
-  "Bernese Mountain Dog": "Bernese mauntain dog",
-  "Bichon Frise": "Bichon Frise",
-  "Border Collie": "Border Colie",
-  "Boxer": "boxer",
-  "Bull Terrier": "Bull terrier",
-  "Bullmastiff": "bullmastiff",
-  "Cane Corso": "cane corso",
-  "Cavalier King Charles Spaniel": "cavaalier king chales spaniel",
-  "Chihuahua": "chihuahua",
-  "Chow Chow": "chow chow",
-  "Cocker Spaniel": "cocker spaniel",
-  "Dachshund": "dachshund",
-  "Dalmatian": "dalmatian",
-  "Doberman Pinscher": "doberman",
-  "English Bulldog": "english bulldog",
-  "English Cocker Spaniel": "cocker spaniel",
-  "German Shepherd": "german shepherd",
-  "Golden Retriever": "golden retriver",
-  "Goldendoodle": "goldendoodle",
-  "Great Dane": "great dane",
-  "Greyhound": "grayhound",
-  "Italian Greyhound": "grayhound",
-  "Jack Russell Terrier": "jack russell terrier",
-  "Japanese Spitz": "japanese spitz",
-  "Labradoodle": "labradoofle",
-  "Labrador Retriever": "labrador retriver",
-  "Leonberger": "leonberger",
-  "Lhasa Apso": "lhasa apso",
-  "Maltese": "maltese",
-  "Miniature Schnauzer": "miniature schnauzer",
-  "Newfoundland": "newfoundland",
-  "Papillon": "papillion",
-  "Pekingese": "pekingese",
-  "Pomeranian": "pomeranian",
-  "Poodle (Miniature)": "poodle",
-  "Poodle (Standard)": "poodle",
-  "Poodle (Toy)": "poodle",
-  "Rhodesian Ridgeback": "rhodesian ridgeback",
-  "Rottweiler": "rottweiler",
-  "Saint Bernard": "saint bernard",
-  "Saluki": "saluki",
-  "Samoyed": "samoyed",
-  "Shiba Inu": "shiba inu",
-  "Shih Tzu": "shih tzu",
-  "Siberian Husky": "siberian husky",
-  "Staffordshire Bull Terrier": "staffordshire bull terrier",
-  "Weimaraner": "Weimaraner",
-  "Whippet": "Whippet",
-  "Yorkshire Terrier": "yorkshire ",
-};
-
-const FALLBACK_IMG = "/breeds/falbback.png";
-
-function getBreedImageSrc(breed: string | null): string {
-  if (!breed) return FALLBACK_IMG;
-  if (breed.includes(",")) return FALLBACK_IMG;
-  const filename = BREED_IMAGE_MAP[breed.trim()];
-  return filename ? `/breeds/${filename}.png` : FALLBACK_IMG;
-}
 
 // Per-bowl grams for a single ingredient for a specific dog
 function gramsPerBowl(dailyKcal: number, grams_per_1000_kcal: number, weight_pct: number): number {

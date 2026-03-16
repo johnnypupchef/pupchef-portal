@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { Link } from "react-router-dom";
+import DogAvatar from "../components/DogAvatar";
 
 interface Dog { id: string; name: string; breed: string | null; weight_kg: string | null; daily_kcal: number | null }
 interface Subscription { id: string; status: string; trial_price: string | null; selling_price_total: string; trial_ends_at: string | null }
@@ -111,7 +112,7 @@ export default function AccountPage() {
           )}
           {dogs.map((dog) => (
             <div key={dog.id} className="flex items-center gap-3 px-5 py-3.5">
-              <div className="w-10 h-10 bg-cream rounded-xl flex items-center justify-center text-xl shrink-0">🐶</div>
+              <DogAvatar breed={dog.breed} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="font-body font-semibold text-brand text-sm">{dog.name}</p>
                 <p className="text-xs text-brand/50 font-body truncate">
