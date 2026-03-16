@@ -10,6 +10,7 @@ interface Dog {
 }
 
 interface RecipeIngredient { name: string; weight_percentage: number }
+interface RecipeSupplement { name: string; dose_amount: number; dose_unit: string }
 interface Recipe {
   slot: string;
   recipe_id: string;
@@ -17,6 +18,7 @@ interface Recipe {
   label_background_url: string | null;
   grams_per_1000_kcal: number;
   ingredients: RecipeIngredient[];
+  supplements: RecipeSupplement[];
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -113,10 +115,10 @@ function RecipeCard({ recipe, dog }: { recipe: Recipe; dog: Dog }) {
   const totalBowlGrams = kcal > 0 ? (kcal / 1000) * recipe.grams_per_1000_kcal / 2 : 0;
 
   return (
-    <div className="w-64 shrink-0 bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden snap-start">
+    <div className="w-64 shrink-0 bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
       {/* Recipe background image or colored header */}
       {recipe.label_background_url ? (
-        <div className="h-28 overflow-hidden">
+        <div className="h-44 overflow-hidden">
           <img
             src={recipe.label_background_url}
             alt={recipe.name}
@@ -124,7 +126,7 @@ function RecipeCard({ recipe, dog }: { recipe: Recipe; dog: Dog }) {
           />
         </div>
       ) : (
-        <div className={`h-28 flex items-center justify-center ${SLOT_COLORS[recipe.slot] ?? "bg-forest"}`}>
+        <div className={`h-44 flex items-center justify-center ${SLOT_COLORS[recipe.slot] ?? "bg-forest"}`}>
           <span className="text-4xl">🍲</span>
         </div>
       )}
@@ -160,6 +162,21 @@ function RecipeCard({ recipe, dog }: { recipe: Recipe; dog: Dog }) {
               </div>
             );
           })}
+          {recipe.supplements && recipe.supplements.length > 0 && (
+            <>
+              <div className="border-t border-purple-100 pt-1.5 mt-1.5">
+                <p className="text-[10px] font-heading font-bold text-purple-400 uppercase tracking-wide mb-1">Supplements</p>
+                {recipe.supplements.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-purple-600 font-body truncate">+ {s.name}</span>
+                    <span className="text-xs font-body font-semibold text-purple-600 shrink-0">
+                      {Math.round(s.dose_amount)}{s.dose_unit}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -345,8 +362,15 @@ export default function DogsPage() {
               <p className="text-xs font-heading font-bold text-brand/50 uppercase tracking-widest mb-2.5 px-0.5">
                 {dog.name}&apos;s Recipe Rotation
               </p>
-              <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth"
-                style={{ scrollbarWidth: "none" }}>
+              <div
+                className="flex gap-3 pb-2"
+                style={{
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  cursor: "grab",
+                }}>
                 {recipes.map((recipe) => (
                   <RecipeCard key={recipe.recipe_id} recipe={recipe} dog={dog} />
                 ))}
