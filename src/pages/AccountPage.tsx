@@ -101,8 +101,8 @@ export default function AccountPage() {
 
       {/* My Dogs */}
       <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
-          <h2 className="font-heading font-bold text-brand">My Dogs</h2>
+        <div className="flex items-center justify-between px-5 py-4 bg-forest">
+          <h2 className="font-heading font-bold text-white">My Dogs</h2>
           <Link to="/dogs" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">View all →</Link>
         </div>
         <div className="divide-y divide-cream-dark">
@@ -127,8 +127,8 @@ export default function AccountPage() {
       {/* Next delivery detail */}
       {next_delivery && (
         <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
-            <h2 className="font-heading font-bold text-brand">Next Delivery</h2>
+          <div className="flex items-center justify-between px-5 py-4 bg-forest">
+            <h2 className="font-heading font-bold text-white">Next Delivery</h2>
             <Link to="/deliveries" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">View all →</Link>
           </div>
           <div className="px-5 py-4 flex items-center gap-4">
@@ -148,8 +148,8 @@ export default function AccountPage() {
       {/* Plan summary */}
       {subscription && (
         <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
-            <h2 className="font-heading font-bold text-brand">Your Plan</h2>
+          <div className="flex items-center justify-between px-5 py-4 bg-forest">
+            <h2 className="font-heading font-bold text-white">Your Plan</h2>
             <Link to="/subscription" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">Manage →</Link>
           </div>
           <div className="grid grid-cols-2 gap-px bg-cream-dark">
@@ -169,8 +169,8 @@ export default function AccountPage() {
 
       {/* Profile */}
       <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
-          <h2 className="font-heading font-bold text-brand">Contact & Address</h2>
+        <div className="flex items-center justify-between px-5 py-4 bg-forest">
+          <h2 className="font-heading font-bold text-white">Contact & Address</h2>
           <Link to="/settings" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">Edit →</Link>
         </div>
         <div className="px-5 py-4 space-y-1.5 text-sm font-body text-brand/70">
