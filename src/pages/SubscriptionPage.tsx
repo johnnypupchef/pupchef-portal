@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 
-interface SubDog { dog_name: string; daily_kcal: number; discounted_monthly_price: string }
+interface SubDog { dog_name: string; daily_kcal: number; discounted_monthly_price: string; household_discount_rate: number; dog_index: number }
 interface Subscription {
   id: string; status: string; selling_price_total: string; trial_price: string | null;
   trial_ends_at: string | null; created_at: string;
@@ -128,10 +128,17 @@ export default function SubscriptionPage() {
                   <div className="w-9 h-9 bg-cream rounded-xl flex items-center justify-center text-lg">🐶</div>
                   <div>
                     <p className="font-body font-semibold text-brand text-sm">{d.dog_name}</p>
-                    <p className="text-xs text-brand/50 font-body">{d.daily_kcal} kcal/day</p>
+                    <p className="text-xs text-brand/50 font-body">{Math.round(d.daily_kcal)} kcal/day</p>
                   </div>
                 </div>
-                <p className="font-heading font-bold text-brand">AED {Number(d.discounted_monthly_price).toFixed(0)}<span className="font-body font-normal text-brand/50 text-xs">/mo</span></p>
+                <div className="text-right">
+                  <p className="font-heading font-bold text-brand">AED {Number(d.discounted_monthly_price).toFixed(0)}<span className="font-body font-normal text-brand/50 text-xs">/mo</span></p>
+                  {d.household_discount_rate > 0 && (
+                    <span className="inline-block mt-0.5 text-[10px] font-heading font-bold bg-coral/10 text-coral px-2 py-0.5 rounded-full">
+                      {Math.round(d.household_discount_rate * 100)}% household discount
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -16,22 +16,14 @@ const STATUS_LABELS: Record<string, string> = {
 };
 const STATUS_COLORS: Record<string, string> = {
   trial: "bg-blue-100 text-blue-700",
-  active: "bg-forest/10 text-forest",
+  active: "bg-green-100 text-green-700",
   paused: "bg-amber-100 text-amber-700",
   past_due: "bg-red-100 text-red-700",
   cancelled: "bg-brand/10 text-brand/50",
 };
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-AE", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-}
-
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`bg-white rounded-2xl border border-cream-dark p-5 shadow-sm ${className}`}>
-      {children}
-    </div>
-  );
+  return new Date(iso).toLocaleDateString("en-AE", { weekday: "short", day: "numeric", month: "short" });
 }
 
 export default function AccountPage() {
@@ -53,105 +45,143 @@ export default function AccountPage() {
   const { person, dogs, subscription, next_delivery } = data;
 
   return (
-    <div className="space-y-5">
-      {/* Greeting */}
-      <div>
-        <h1 className="font-heading font-extrabold text-2xl text-brand">
-          {person.first_name ? `Hey, ${person.first_name}! 👋` : "Welcome back!"}
+    <div className="space-y-4">
+      {/* Hero greeting */}
+      <div className="bg-forest rounded-2xl p-6 text-white">
+        <p className="text-white/50 text-xs font-body uppercase tracking-widest mb-1">Welcome back</p>
+        <h1 className="font-heading font-extrabold text-2xl mb-4">
+          {person.first_name ? `${person.first_name} 👋` : "Hey there 👋"}
         </h1>
-        <p className="text-sm text-brand/50 font-body mt-0.5">{person.email}</p>
-      </div>
-
-      {/* Subscription status */}
-      {subscription ? (
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading font-bold text-brand">Your Plan</h2>
-            <span className={`text-xs font-heading font-bold px-3 py-1 rounded-full ${STATUS_COLORS[subscription.status] ?? "bg-brand/10 text-brand/60"}`}>
+        {subscription && (
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-white/50 text-xs font-body mb-0.5">Monthly plan</p>
+              <p className="font-heading font-black text-3xl leading-none">
+                AED {Number(subscription.selling_price_total).toFixed(0)}
+              </p>
+            </div>
+            <span className={`text-xs font-heading font-bold px-3 py-1.5 rounded-full ${STATUS_COLORS[subscription.status] ?? "bg-white/10 text-white"}`}>
               {STATUS_LABELS[subscription.status] ?? subscription.status}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-brand/50 text-xs font-body mb-0.5">Monthly price</p>
-              <p className="font-heading font-extrabold text-brand text-xl">AED {Number(subscription.selling_price_total).toFixed(0)}</p>
-            </div>
-            {subscription.trial_price && (
-              <div>
-                <p className="text-brand/50 text-xs font-body mb-0.5">Trial price</p>
-                <p className="font-heading font-bold text-brand">AED {Number(subscription.trial_price).toFixed(0)}</p>
-              </div>
-            )}
-            {subscription.trial_ends_at && (
-              <div>
-                <p className="text-brand/50 text-xs font-body mb-0.5">Trial ends</p>
-                <p className="font-body font-medium text-brand">{formatDate(subscription.trial_ends_at)}</p>
-              </div>
-            )}
-          </div>
-          <Link to="/subscription" className="inline-block mt-4 text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">
-            Manage plan →
-          </Link>
-        </Card>
-      ) : (
-        <Card className="bg-forest text-white border-forest">
-          <p className="font-body text-sm text-white/80">No active subscription found.</p>
-        </Card>
-      )}
+        )}
+      </div>
 
-      {/* Next delivery */}
-      {next_delivery && (
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-heading font-bold text-brand mb-1">Next Delivery</h2>
-              <p className="font-body font-medium text-brand">{formatDate(next_delivery.delivery_date)}</p>
-              <p className="text-xs text-brand/50 font-body uppercase tracking-wide mt-0.5">{next_delivery.delivery_type.replace("_", " ")}</p>
-            </div>
-            <div className="w-12 h-12 bg-coral/10 rounded-xl flex items-center justify-center text-2xl">📦</div>
-          </div>
-          <Link to="/deliveries" className="inline-block mt-4 text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">
-            View all deliveries →
-          </Link>
-        </Card>
-      )}
+      {/* Quick stats row */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* Next delivery */}
+        <div className="bg-white rounded-2xl border border-cream-dark p-3.5 shadow-sm flex flex-col gap-1">
+          <span className="text-xl">📦</span>
+          <p className="text-[10px] text-brand/40 font-body uppercase tracking-wide leading-none">Next delivery</p>
+          <p className="font-heading font-bold text-brand text-sm leading-tight">
+            {next_delivery ? formatDate(next_delivery.delivery_date) : "—"}
+          </p>
+        </div>
+        {/* Dogs */}
+        <div className="bg-white rounded-2xl border border-cream-dark p-3.5 shadow-sm flex flex-col gap-1">
+          <span className="text-xl">🐾</span>
+          <p className="text-[10px] text-brand/40 font-body uppercase tracking-wide leading-none">Dogs</p>
+          <p className="font-heading font-bold text-brand text-sm leading-tight">
+            {dogs.length} {dogs.length === 1 ? "dog" : "dogs"}
+          </p>
+        </div>
+        {/* Trial info or status */}
+        <div className="bg-white rounded-2xl border border-cream-dark p-3.5 shadow-sm flex flex-col gap-1">
+          <span className="text-xl">🔄</span>
+          <p className="text-[10px] text-brand/40 font-body uppercase tracking-wide leading-none">
+            {subscription?.trial_ends_at ? "Trial ends" : "Status"}
+          </p>
+          <p className="font-heading font-bold text-brand text-sm leading-tight">
+            {subscription?.trial_ends_at
+              ? formatDate(subscription.trial_ends_at)
+              : (subscription ? STATUS_LABELS[subscription.status] : "—")}
+          </p>
+        </div>
+      </div>
 
-      {/* Dogs */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
+      {/* My Dogs */}
+      <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
           <h2 className="font-heading font-bold text-brand">My Dogs</h2>
           <Link to="/dogs" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">View all →</Link>
         </div>
-        <div className="space-y-3">
+        <div className="divide-y divide-cream-dark">
+          {dogs.length === 0 && (
+            <p className="px-5 py-4 text-sm text-brand/40 font-body">No dogs found.</p>
+          )}
           {dogs.map((dog) => (
-            <div key={dog.id} className="flex items-center gap-3">
+            <div key={dog.id} className="flex items-center gap-3 px-5 py-3.5">
               <div className="w-10 h-10 bg-cream rounded-xl flex items-center justify-center text-xl shrink-0">🐶</div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-body font-semibold text-brand text-sm">{dog.name}</p>
-                <p className="text-xs text-brand/50 font-body">
-                  {[dog.breed, dog.weight_kg ? `${dog.weight_kg} kg` : null, dog.daily_kcal ? `${dog.daily_kcal} kcal/day` : null].filter(Boolean).join(" · ")}
+                <p className="text-xs text-brand/50 font-body truncate">
+                  {[dog.breed, dog.weight_kg ? `${dog.weight_kg} kg` : null, dog.daily_kcal ? `${Math.round(dog.daily_kcal)} kcal/day` : null].filter(Boolean).join(" · ")}
                 </p>
               </div>
+              <span className="text-xs text-brand/30 font-body shrink-0">→</span>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
+
+      {/* Next delivery detail */}
+      {next_delivery && (
+        <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
+            <h2 className="font-heading font-bold text-brand">Next Delivery</h2>
+            <Link to="/deliveries" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">View all →</Link>
+          </div>
+          <div className="px-5 py-4 flex items-center gap-4">
+            <div className="w-12 h-12 bg-coral/10 rounded-xl flex items-center justify-center text-2xl shrink-0">📦</div>
+            <div>
+              <p className="font-body font-semibold text-brand">
+                {new Date(next_delivery.delivery_date).toLocaleDateString("en-AE", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+              <p className="text-xs text-brand/50 font-body uppercase tracking-wide mt-0.5">
+                {next_delivery.delivery_type.replace("_", " ")}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Plan summary */}
+      {subscription && (
+        <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
+            <h2 className="font-heading font-bold text-brand">Your Plan</h2>
+            <Link to="/subscription" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">Manage →</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-px bg-cream-dark">
+            <div className="bg-white px-5 py-3.5">
+              <p className="text-[10px] text-brand/40 font-body uppercase tracking-wide mb-0.5">Monthly price</p>
+              <p className="font-heading font-extrabold text-brand text-lg">AED {Number(subscription.selling_price_total).toFixed(0)}</p>
+            </div>
+            {subscription.trial_price && (
+              <div className="bg-white px-5 py-3.5">
+                <p className="text-[10px] text-brand/40 font-body uppercase tracking-wide mb-0.5">Trial price</p>
+                <p className="font-heading font-bold text-brand text-lg">AED {Number(subscription.trial_price).toFixed(0)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Profile */}
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-heading font-bold text-brand">Profile</h2>
+      <div className="bg-white rounded-2xl border border-cream-dark shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
+          <h2 className="font-heading font-bold text-brand">Contact & Address</h2>
           <Link to="/settings" className="text-sm text-coral font-heading font-bold hover:text-coral-dark transition-colors">Edit →</Link>
         </div>
-        <div className="text-sm text-brand/70 font-body space-y-1">
+        <div className="px-5 py-4 space-y-1.5 text-sm font-body text-brand/70">
           {[person.first_name, person.last_name].filter(Boolean).join(" ") && (
-            <p className="font-medium text-brand">{[person.first_name, person.last_name].filter(Boolean).join(" ")}</p>
+            <p className="font-semibold text-brand">{[person.first_name, person.last_name].filter(Boolean).join(" ")}</p>
           )}
           <p>{person.email}</p>
           {person.phone && <p>{person.phone}</p>}
-          {person.area && <p>{person.area}</p>}
+          {person.area && <p>📍 {person.area}</p>}
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

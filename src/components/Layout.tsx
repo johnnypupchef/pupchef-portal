@@ -3,11 +3,11 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 
 const navItems = [
-  { to: "/account", label: "Overview", icon: "🏠" },
-  { to: "/dogs", label: "My Dogs", icon: "🐾" },
-  { to: "/deliveries", label: "Deliveries", icon: "📦" },
-  { to: "/subscription", label: "Plan", icon: "🔄" },
-  { to: "/settings", label: "Settings", icon: "⚙️" },
+  { to: "/account", label: "Overview", shortLabel: "Overview", icon: "🏠" },
+  { to: "/dogs", label: "My Dogs", shortLabel: "My Dogs", icon: "🐾" },
+  { to: "/deliveries", label: "Deliveries", shortLabel: "Deliveries", icon: "📦" },
+  { to: "/subscription", label: "Plan", shortLabel: "Plan", icon: "🔄" },
+  { to: "/settings", label: "Address & Contact Info", shortLabel: "Contact", icon: "📍" },
 ];
 
 export default function Layout() {
@@ -29,7 +29,7 @@ export default function Layout() {
       <header className="bg-white border-b border-cream-dark sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           {/* Logo */}
-          <img src="/logo.png" alt="PupChef" className="h-7 w-auto" />
+          <img src="/logo.png" alt="PupChef" className="h-[45px] w-auto" />
 
           {/* Right: user + signout */}
           <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export default function Layout() {
             }
           >
             <span className="text-lg mb-0.5">{item.icon}</span>
-            {item.label}
+            {item.shortLabel ?? item.label}
           </NavLink>
         ))}
       </nav>
