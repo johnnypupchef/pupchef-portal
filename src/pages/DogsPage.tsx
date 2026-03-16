@@ -1,5 +1,58 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+
+// Drag-to-scroll container — works with mouse on desktop and touch on mobile
+function DragScroll({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const [grabbing, setGrabbing] = useState(false);
+
+  function onMouseDown(e: React.MouseEvent) {
+    if (!ref.current) return;
+    isDragging.current = true;
+    setGrabbing(true);
+    startX.current = e.pageX - ref.current.getBoundingClientRect().left;
+    scrollLeft.current = ref.current.scrollLeft;
+  }
+
+  function onMouseMove(e: React.MouseEvent) {
+    if (!isDragging.current || !ref.current) return;
+    e.preventDefault();
+    const x = e.pageX - ref.current.getBoundingClientRect().left;
+    const walk = (x - startX.current) * 1.2;
+    ref.current.scrollLeft = scrollLeft.current - walk;
+  }
+
+  function stopDrag() {
+    isDragging.current = false;
+    setGrabbing(false);
+  }
+
+  return (
+    <div
+      ref={ref}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={stopDrag}
+      onMouseLeave={stopDrag}
+      style={{
+        display: "flex",
+        gap: "12px",
+        overflowX: "auto",
+        paddingBottom: "8px",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        cursor: grabbing ? "grabbing" : "grab",
+        userSelect: "none",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 interface Dog {
   id: string; name: string; breed: string | null; sex: string | null;
@@ -362,19 +415,11 @@ export default function DogsPage() {
               <p className="text-xs font-heading font-bold text-brand/50 uppercase tracking-widest mb-2.5 px-0.5">
                 {dog.name}&apos;s Recipe Rotation
               </p>
-              <div
-                className="flex gap-3 pb-2"
-                style={{
-                  overflowX: "auto",
-                  WebkitOverflowScrolling: "touch",
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                  cursor: "grab",
-                }}>
+              <DragScroll>
                 {recipes.map((recipe) => (
                   <RecipeCard key={recipe.recipe_id} recipe={recipe} dog={dog} />
                 ))}
-              </div>
+              </DragScroll>
             </div>
           )}
         </div>
