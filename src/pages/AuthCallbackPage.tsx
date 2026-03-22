@@ -1,31 +1,84 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
+import { setToken } from "../lib/api";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
 
 export default function AuthCallbackPage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (!token) { setError("Invalid or missing login link."); return; }
+    if (!isSupabaseConfigured()) {
+      setError("Missing Supabase configuration.");
+      return;
+    }
 
-    fetch(`${API_URL}/api/portal/auth/validate?token=${encodeURIComponent(token)}`)
-      .then((r) => r.json())
-      .then((d: { session_token?: string; person?: { id: string; first_name: string | null; last_name: string | null; email: string }; error?: string }) => {
-        if (d.session_token && d.person) {
-          login(d.session_token, d.person);
-          navigate("/account", { replace: true });
-        } else {
-          setError(d.error ?? "Login failed. The link may have expired.");
+    const supabase = getSupabaseBrowserClient();
+
+    async function finish() {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash.includes("access_token")) {
+        const params = new URLSearchParams(hash);
+        const access_token = params.get("access_token");
+        const refresh_token = params.get("refresh_token");
+        if (access_token && refresh_token) {
+          const { error: e } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (e) {
+            setError(e.message);
+            return;
+          }
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
         }
-      })
-      .catch(() => setError("Network error. Please try again."));
-  }, []);
+      }
+
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        const pkceGuardKey = `pupchef_pkce_done_${code.slice(0, 48)}`;
+        if (sessionStorage.getItem(pkceGuardKey) === "1") {
+          window.history.replaceState(null, "", window.location.pathname);
+        } else {
+          const { error: ex } = await supabase.auth.exchangeCodeForSession(code);
+          if (ex) {
+            setError(ex.message);
+            return;
+          }
+          sessionStorage.setItem(pkceGuardKey, "1");
+          window.history.replaceState(null, "", window.location.pathname);
+        }
+      }
+
+      const {
+        data: { session },
+        error: sessionErr,
+      } = await supabase.auth.getSession();
+      if (sessionErr || !session?.access_token) {
+        setError(sessionErr?.message ?? "Invalid or expired login link.");
+        return;
+      }
+
+      setToken(session.access_token);
+
+      const meRes = await fetch(`${API_URL}/api/portal/me`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!meRes.ok) {
+        setError("Could not load your account. Your email may not match a PupChef customer record.");
+        await supabase.auth.signOut();
+        return;
+      }
+      const me = (await meRes.json()) as {
+        person: { id: string; email: string; first_name: string | null; last_name: string | null };
+      };
+      login(session.access_token, me.person);
+      navigate("/account", { replace: true });
+    }
+
+    finish().catch(() => setError("Something went wrong. Please try again."));
+  }, [login, navigate]);
 
   if (error) {
     return (

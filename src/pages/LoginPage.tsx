@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
 
@@ -7,11 +8,14 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [devLink, setDevLink] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
+    if (!isSupabaseConfigured()) {
+      setError("Portal is missing Supabase configuration (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -21,10 +25,35 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
-      const data = await res.json() as { ok?: boolean; error?: string; dev_link?: string };
-      if (!res.ok) { setError(data.error ?? "Failed to send link"); return; }
+      const data = (await res.json()) as {
+        ok?: boolean;
+        proceed?: boolean;
+        error?: string;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Failed to send link");
+        return;
+      }
+      if (!data.proceed) {
+        setSent(true);
+        return;
+      }
+
+      const origin = window.location.origin.trim();
+      const redirectTo = `${origin}/auth/callback`;
+      const supabase = getSupabaseBrowserClient();
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: false,
+        },
+      });
+      if (otpError) {
+        setError(otpError.message);
+        return;
+      }
       setSent(true);
-      if (data.dev_link) setDevLink(data.dev_link);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -34,7 +63,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4">
-      {/* Logo */}
       <div className="text-center mb-10">
         <img src="/logo.png" alt="PupChef" className="h-10 w-auto mx-auto mb-2" />
         <p className="text-sm text-brand/50 font-body">My Account</p>
@@ -46,7 +74,8 @@ export default function LoginPage() {
             <>
               <h2 className="font-heading font-extrabold text-2xl text-brand mb-1">Welcome back</h2>
               <p className="text-sm text-brand/60 mb-6 font-body leading-relaxed">
-                Enter your email and we'll send you a one-click login link. No password needed.
+                Enter your email and we&apos;ll send you a one-click login link from our secure sign-in
+                provider. No password needed.
               </p>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <input
@@ -57,9 +86,7 @@ export default function LoginPage() {
                   required
                   className="w-full border border-cream-dark rounded-xl px-4 py-3.5 text-sm text-brand bg-cream focus:outline-none focus:ring-2 focus:ring-coral/40 focus:border-coral transition font-body"
                 />
-                {error && (
-                  <p className="text-sm text-red-600 font-body">{error}</p>
-                )}
+                {error && <p className="text-sm text-red-600 font-body">{error}</p>}
                 <button
                   type="submit"
                   disabled={loading}
@@ -76,27 +103,19 @@ export default function LoginPage() {
               </div>
               <h2 className="font-heading font-extrabold text-xl text-brand">Check your email</h2>
               <p className="text-sm text-brand/60 font-body leading-relaxed">
-                We sent a login link to <strong className="text-brand">{email}</strong>.
-                Click the link to sign in. It expires in 1 hour.
+                If an account exists for <strong className="text-brand">{email}</strong>, we sent a login
+                link. Click it to sign in.
               </p>
               <button
-                onClick={() => { setSent(false); setDevLink(""); }}
+                type="button"
+                onClick={() => {
+                  setSent(false);
+                  setError("");
+                }}
                 className="text-sm text-coral hover:text-coral-dark font-heading font-bold transition-colors"
               >
                 Use a different email
               </button>
-
-              {devLink && (
-                <div className="mt-2 p-4 bg-forest/5 border border-forest/20 rounded-xl text-left">
-                  <p className="text-xs font-heading font-bold text-forest mb-2">DEV MODE — Login link:</p>
-                  <a
-                    href={devLink}
-                    className="text-xs text-coral underline break-all font-body leading-relaxed"
-                  >
-                    {devLink}
-                  </a>
-                </div>
-              )}
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { getToken, clearToken, setToken } from "../lib/api";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
 
 interface AuthPerson {
   id: string;
@@ -12,7 +13,7 @@ interface AuthContextType {
   person: AuthPerson | null;
   token: string | null;
   login: (token: string, person: AuthPerson) => void;
-  logout: () => void;
+  logout: () => void | Promise<void>;
   loading: boolean;
 }
 
@@ -42,7 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPerson(p);
   }
 
-  function logout() {
+  async function logout() {
+    if (isSupabaseConfigured()) {
+      try {
+        await getSupabaseBrowserClient().auth.signOut();
+      } catch {
+        /* ignore */
+      }
+    }
     clearToken();
     setTokenState(null);
     setPerson(null);

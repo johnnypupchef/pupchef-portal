@@ -15,8 +15,12 @@ export default function Layout() {
   const navigate = useNavigate();
 
   async function handleLogout() {
-    try { await api.post("/api/portal/logout"); } catch {}
-    logout();
+    try {
+      await api.post("/api/portal/logout");
+    } catch {
+      /* optional server hook */
+    }
+    await logout();
     navigate("/login");
   }
 
