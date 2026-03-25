@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const q = searchParams.get("email");
+    if (q && q.trim()) setEmail(q.trim());
+  }, [searchParams]);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

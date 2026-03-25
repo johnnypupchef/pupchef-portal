@@ -6,7 +6,18 @@ import DogAvatar from "../components/DogAvatar";
 interface Dog { id: string; name: string; breed: string | null; weight_kg: string | null; daily_kcal: number | null }
 interface Subscription { id: string; status: string; trial_price: string | null; selling_price_total: string; trial_ends_at: string | null }
 interface AccountData {
-  person: { id: string; first_name: string | null; last_name: string | null; email: string; phone: string | null; area: string | null };
+  person: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    phone: string | null;
+    area: string | null;
+    address_line_1: string | null;
+    address_line_2: string | null;
+    city: string | null;
+    emirate: string | null;
+  };
   dogs: Dog[];
   subscription: Subscription | null;
   next_delivery: { delivery_date: string; delivery_type: string } | null;
@@ -180,7 +191,23 @@ export default function AccountPage() {
           )}
           <p>{person.email}</p>
           {person.phone && <p>{person.phone}</p>}
-          {person.area && <p>📍 {person.area}</p>}
+          {(person.address_line_1 ||
+            person.address_line_2 ||
+            person.city ||
+            person.emirate ||
+            person.area) && (
+            <div className="pt-1 border-t border-cream-dark/60 mt-2 space-y-0.5">
+              <p className="text-[10px] text-brand/40 uppercase tracking-wide font-heading font-bold">Delivery address</p>
+              {person.address_line_1 && <p>{person.address_line_1}</p>}
+              {person.address_line_2 && <p>{person.address_line_2}</p>}
+              {(person.city || person.emirate || person.area) && (
+                <p>
+                  {[person.city, person.emirate].filter(Boolean).join(", ")}
+                  {person.area && (person.city || person.emirate) ? ` · ${person.area}` : person.area || ""}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
