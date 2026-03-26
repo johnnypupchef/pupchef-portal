@@ -82,7 +82,13 @@ export default function LoginPage() {
         <div className="w-full max-w-[400px] flex flex-col items-stretch">
           {!sent ? (
             <>
-              <h1 className="font-display text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest text-center font-normal tracking-tight mb-2">
+              <h1
+                className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest text-center mb-2"
+                style={{
+                  fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
+                  letterSpacing: "-2.3px",
+                }}
+              >
                 Welcome!
               </h1>
               <p
@@ -148,7 +154,15 @@ export default function LoginPage() {
                   ✉️
                 </span>
               </div>
-              <h1 className="font-display text-2xl text-forest">Check your email</h1>
+              <h1
+                className="font-heading font-extrabold text-2xl text-forest"
+                style={{
+                  fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
+                  letterSpacing: "-1px",
+                }}
+              >
+                Check your email
+              </h1>
               <p
                 className="text-sm text-login-muted leading-relaxed"
                 style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
