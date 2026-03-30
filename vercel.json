@@ -1,6 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/favicon.ico", "destination": "/favicon.jpg" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "headers": [
+    {
+      "source": "/favicon.ico",
+      "headers": [{ "key": "Content-Type", "value": "image/jpeg" }]
+    }
+  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
