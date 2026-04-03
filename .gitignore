@@ -2,3 +2,10 @@ node_modules
 dist
 .env
 *.local
+
+# Capacitor native (commit ios/ + android/; ignore local build artifacts)
+ios/App/Pods
+ios/DerivedData
+android/.gradle
+android/app/build
+android/build
