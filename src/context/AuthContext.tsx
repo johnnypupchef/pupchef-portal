@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { getToken, clearToken, setToken } from "../lib/api";
+import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
 
 interface AuthPerson {
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const t = getToken();
     if (!t) { setLoading(false); return; }
 
-    fetch(`${import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app"}/api/portal/me`, {
+    fetch(`${getPortalApiBaseUrl()}/api/portal/me`, {
       headers: { Authorization: `Bearer ${t}` },
     })
       .then((r) => (r.ok ? r.json() : Promise.reject()))

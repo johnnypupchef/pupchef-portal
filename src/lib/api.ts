@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
+import { getPortalApiBaseUrl } from "./apiBaseUrl";
+
+const API_URL = getPortalApiBaseUrl();
 const TOKEN_KEY = "pc_portal_token";
 
 export function getToken(): string | null {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
+const API_URL = getPortalApiBaseUrl();
 
 interface QuoteDog {
   dog_name: string; daily_kcal: number;

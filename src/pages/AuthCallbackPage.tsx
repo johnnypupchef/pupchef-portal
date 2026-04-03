@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
 import { setToken } from "../lib/api";
+import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
+const API_URL = getPortalApiBaseUrl();
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();

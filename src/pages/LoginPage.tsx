@@ -9,10 +9,12 @@ import MarketingNavbar from "../components/marketing/MarketingNavbar";
 import MarketingFooter from "../components/marketing/MarketingFooter";
 import LoginSupportSection from "../components/marketing/LoginSupportSection";
 
+import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
+
 const SLIDE4_THUMB =
   "https://rkgrfzsmkymkfnsvewzo.supabase.co/storage/v1/object/public/label-assets/quiz/slide-4.jpg";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
+const API_URL = getPortalApiBaseUrl();
 const SIGNUP_URL = `${MARKETING_ORIGIN}/signup`;
 
 export default function LoginPage() {
