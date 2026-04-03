@@ -125,7 +125,7 @@ export default function LoginPage() {
                         alt=""
                         width={96}
                         height={96}
-                        className="rounded-xl object-cover shrink-0 border border-black/[0.08]"
+                        className="object-cover shrink-0"
                         style={{ width: 88, height: 88, minWidth: 88, minHeight: 88 }}
                       />
                     </div>
