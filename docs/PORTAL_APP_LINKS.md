@@ -8,13 +8,14 @@ The native app requests Supabase magic links with `emailRedirectTo` = **`https:/
    - `https://my.pupchef.ae/.well-known/assetlinks.json` returns **200** with `Content-Type: application/json` (no HTML redirect).
 
 3. **SHA-256 fingerprints** in `assetlinks.json`:
-   - Debug (emulator / local):
+   - **Emulator and Android Studio** use the **debug keystore**, not Google Play. Play App Signing only matters after you ship to the store (then add that certificate’s SHA-256 alongside debug if you test release builds).
+   - Debug fingerprint:
 
      ```bash
      keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
      ```
 
-   - Copy the **SHA256** line and remove **colons** → 64 hex characters. Put it in `public/.well-known/assetlinks.json` (you can list **multiple** fingerprints for debug + Play signing keys).
+   - Copy the **SHA256** line and remove **colons** → 64 hex characters. The repo currently includes **one** debug fingerprint; add more array entries if teammates have different debug keystores or when you add a release signing key.
 
 4. **Android Studio**: uninstall the app, reinstall, then open a magic link again. Google verifies App Links asynchronously; first open may still ask “Open with Chrome or PupChef” until verification succeeds.
 
