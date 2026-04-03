@@ -1,21 +1,21 @@
 # Portal magic links → mobile app
 
-## Why `pupchef://` (not only `https://`)
+## Why `auth/native-handoff.html` (not `/auth/callback`)
 
-If the magic link uses **`redirect_to=https://my.pupchef.ae/auth/callback`**, Chrome (or the in-app browser) **keeps the whole flow in the browser** after Supabase verifies: the redirect lands on your site **inside the same tab**, so you get logged in on the web, not in the Capacitor app.
+If **`redirect_to`** is **`https://…/auth/callback`**, the **full React app** loads in Chrome, **`AuthCallbackPage`** runs, and you are **logged in on the web** first. Chrome may then show an “Open in app” bar. That is the wrong order.
 
-The native app therefore requests Supabase with **`emailRedirectTo` = `pupchef://auth/callback`** (override with `VITE_NATIVE_AUTH_REDIRECT`). After verify, Supabase redirects to that custom URL; Android resolves it to your app instead of leaving you in Chrome.
+The native flow uses **`emailRedirectTo` = `https://my.pupchef.ae/auth/native-handoff.html`** (override with `VITE_NATIVE_AUTH_REDIRECT`). That file is **only** a few lines: it **immediately** navigates to **`pupchef://auth/callback` + the same URL hash** (tokens). No bundle, no session in the browser.
 
-1. **Supabase Dashboard** → Authentication → URL Configuration → **Redirect URLs**: add **`pupchef://auth/callback`** (keep `https://my.pupchef.ae/auth/callback` too if you use web login).
+1. **Supabase** → Authentication → URL Configuration → **Redirect URLs**: add **`https://my.pupchef.ae/auth/native-handoff.html`** (use your real origin if different). Keep **`https://my.pupchef.ae/auth/callback`** for normal **web** login. You can keep **`pupchef://auth/callback`** if you added it earlier; it does not hurt.
 
-2. **Android** (`AndroidManifest.xml`): intent-filter for `pupchef` → `auth` → path `/callback` is already in this repo.
+2. **Android** (`AndroidManifest.xml`): intent-filter for **`pupchef`** → **`auth`** → **`/callback`** (already in this repo).
 
-3. **`/.well-known/assetlinks.json`** (HTTPS App Links): still useful if something opens `https://my.pupchef.ae/auth/...` from outside Chrome’s redirect chain; deploy as before.
+3. **`/.well-known/assetlinks.json`**: optional for other HTTPS entry points; deploy as before.
 
-4. **SHA-256** in `assetlinks.json`: debug keystore for emulator; add Play signing when you ship. See keytool commands in git history or Android docs.
+4. **SHA-256** in `assetlinks.json`: debug keystore for emulator; add Play signing when you ship.
 
-5. **Custom domain**: If you change `VITE_PORTAL_URL` / HTTPS host, update the HTTPS intent-filter and `assetlinks.json` on that host.
+Chrome may still show a **brief** system UI the first time it hands off to a **custom scheme**; that is separate from loading the account UI in the browser. On the device: **Settings → Apps → PupChef → Open by default** and enable supported links if you want the OS to prefer the app.
 
 ## iOS (optional)
 
-Register the same custom URL scheme in Xcode, or use Universal Links with `apple-app-site-association` and add the HTTPS callback to Supabase.
+Register the **`pupchef`** URL scheme in Xcode, or use Universal Links; add the same Supabase redirect URLs.

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Opening app…</title>
+    <script>
+      (function () {
+        var h = window.location.hash || "";
+        // Supabase puts tokens in the fragment; pass through to the native app only.
+        window.location.replace("pupchef://auth/callback" + h);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

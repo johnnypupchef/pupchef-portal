@@ -61,7 +61,7 @@ export default function LoginPage() {
         return;
       }
 
-      // Native: custom scheme so Supabase → redirect opens the app (https would stay in Chrome).
+      // Native: static handoff URL → pupchef:// (not /auth/callback, which logs in inside Chrome).
       const redirectTo = native
         ? getNativeMagicLinkRedirectUrl()
         : `${window.location.origin.trim()}/auth/callback`;
