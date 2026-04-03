@@ -1,0 +1,10 @@
+---
+description: Run builds, tests, and tooling in the terminal—never delegate to the user
+alwaysApply: true
+---
+
+# Run commands yourself
+
+After making code changes, **run the needed terminal commands yourself** (install, build, test, lint, `cap sync`, etc.). **Do not** end with “please run X” or “you should run Y” unless the environment truly cannot perform the action.
+
+If a command fails, try alternatives or report the error—do not hand off the command to the user as the default outcome.
