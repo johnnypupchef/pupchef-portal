@@ -53,15 +53,33 @@ try {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
 
-// Before every APK build: rebuild web app and copy dist → app/src/main/assets/public (Capacitor).
-// So Android Studio Run always picks up portal changes without a separate terminal step.
+// Rebuild web app and copy dist → app/src/main/assets/public.
+// Uses `cap copy` (not `cap sync`) so Gradle never runs `cap sync` mid-build — sync can
+// touch native projects and delete intermediates (aar-metadata, merged manifests) while tasks run.
 def portalRoot = file("${projectDir}/../..").canonicalFile
 tasks.register('capacitorCopyWebAssets', Exec) {
     group = 'capacitor'
-    description = 'npm run mobile:build:android (Vite build + cap sync android)'
+    description = 'npm run mobile:copy:android (Vite build + cap copy android)'
     workingDir portalRoot
-    commandLine 'npm', 'run', 'mobile:build:android'
+    commandLine 'npm', 'run', 'mobile:copy:android'
 }
+
 afterEvaluate {
+    // Ordering guard: app must not check AAR metadata before library modules write it.
+    ['Debug', 'Release'].each { variant ->
+        def checkName = "check${variant}AarMetadata"
+        def writeSuffix = "write${variant}AarMetadata"
+        def checkTask = tasks.findByName(checkName)
+        if (checkTask != null) {
+            [':capacitor-cordova-android-plugins', ':capacitor-android', ':capacitor-app'].each { path ->
+                def p = rootProject.findProject(path)
+                if (p != null) {
+                    def wt = p.tasks.findByName(writeSuffix)
+                    if (wt != null) checkTask.dependsOn(wt)
+                }
+            }
+        }
+    }
+
     preBuild.dependsOn(tasks.named('capacitorCopyWebAssets'))
 }

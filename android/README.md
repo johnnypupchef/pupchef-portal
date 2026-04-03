@@ -2,12 +2,11 @@
 
 The WebView loads files from `app/src/main/assets/public/` (copied from the Vite `dist/` build).
 
-**Android Studio “Run”** triggers a Gradle `preBuild` step that runs `npm run mobile:build:android` in the parent `pupchef-portal` folder, so the latest web bundle is copied before the APK is built.
+**Android Studio “Run”** triggers a Gradle `preBuild` step that runs `npm run mobile:copy:android` in the parent `pupchef-portal` folder (`vite build` + **`cap copy android`** only). It does **not** run `cap sync` during the Gradle build — `cap sync` can rewrite native projects **mid-build** and delete files such as `aar-metadata.properties` or merged manifests.
 
-If you ever disable that hook or build from CI without Node:
+Use full sync when you add/change native plugins or Capacitor config (from `pupchef-portal`):
 
 ```bash
-cd ..   # pupchef-portal
 npm run mobile:build:android
 ```
 
