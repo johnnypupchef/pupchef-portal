@@ -1,12 +1,8 @@
-import { MARKETING_ORIGIN } from "../../lib/marketingSite";
-
 const SUPPORT_ILLUSTRATION =
   "https://rkgrfzsmkymkfnsvewzo.supabase.co/storage/v1/object/public/label-assets/quiz/Gemini_Generated_Image_v8khi0v8khi0v8kh.png";
 const WHATSAPP_HREF = "https://wa.me/971543573313";
 
-/**
- * Slide-11–style block: outline “portion details” CTA + support illustration (login page footer).
- */
+/** Native app login footer: support illustration + WhatsApp (no portion-details CTA). */
 export default function LoginSupportSection() {
   return (
     <section
@@ -20,32 +16,7 @@ export default function LoginSupportSection() {
       }}
     >
       <div style={{ maxWidth: 400, margin: "0 auto", textAlign: "center" }}>
-        <a
-          href={`${MARKETING_ORIGIN}/signup`}
-          className="login-portion-btn"
-          style={{
-            marginTop: 0,
-            border: "2px solid rgba(232, 90, 58, 0.65)",
-            background: "transparent",
-            color: "#E85A3A",
-            fontWeight: 800,
-            borderRadius: 10,
-            padding: "12px 18px",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            fontSize: 15,
-            letterSpacing: "-0.2px",
-            textDecoration: "none",
-            fontFamily: "inherit",
-            boxSizing: "border-box",
-          }}
-        >
-          Your Dog&apos;s portion details
-        </a>
-
-        <div style={{ marginTop: 26, textAlign: "center" }}>
+        <div style={{ textAlign: "center" }}>
           <img
             src={SUPPORT_ILLUSTRATION}
             alt=""
