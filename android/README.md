@@ -33,4 +33,4 @@ After `./gradlew clean`, the first build **must** finish fully before Run — do
 
 ## Magic link opens the app (App Links)
 
-See **`docs/PORTAL_APP_LINKS.md`** — deploy `/.well-known/assetlinks.json`, set `VITE_PORTAL_URL`, add the redirect URL in Supabase, and replace the SHA-256 placeholder in `public/.well-known/assetlinks.json`.
+See **`docs/PORTAL_APP_LINKS.md`** — add **`pupchef://auth/callback`** (and HTTPS callback if needed) in Supabase, deploy `/.well-known/assetlinks.json`, run `npm run mobile:copy:android` / rebuild.
