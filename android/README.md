@@ -30,3 +30,7 @@ Gradle removed intermediate files (e.g. after **Clean**) but the IDE or a task s
 3. If it still fails: **File → Invalidate Caches… → Invalidate and Restart**.
 
 After `./gradlew clean`, the first build **must** finish fully before Run — don’t interrupt it.
+
+## Magic link opens the app (App Links)
+
+See **`docs/PORTAL_APP_LINKS.md`** — deploy `/.well-known/assetlinks.json`, set `VITE_PORTAL_URL`, add the redirect URL in Supabase, and replace the SHA-256 placeholder in `public/.well-known/assetlinks.json`.

@@ -10,6 +10,7 @@ import MarketingFooter from "../components/marketing/MarketingFooter";
 import LoginSupportSection from "../components/marketing/LoginSupportSection";
 
 import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
+import { getPortalPublicOrigin } from "../lib/portalUrl";
 
 const SLIDE4_THUMB =
   "https://rkgrfzsmkymkfnsvewzo.supabase.co/storage/v1/object/public/label-assets/quiz/slide-4.jpg";
@@ -60,8 +61,10 @@ export default function LoginPage() {
         return;
       }
 
-      const origin = window.location.origin.trim();
-      const redirectTo = `${origin}/auth/callback`;
+      // Native: magic link must use real HTTPS host (App Links + Supabase redirect allow list), not WebView localhost.
+      const redirectTo = native
+        ? `${getPortalPublicOrigin()}/auth/callback`
+        : `${window.location.origin.trim()}/auth/callback`;
       const supabase = getSupabaseBrowserClient();
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),

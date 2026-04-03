@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ae.pupchef.portal",
+      "sha256_cert_fingerprints": [
+        "REPLACE_WITH_SHA256_NO_COLONS_SEE_docs_PORTAL_APP_LINKS.md"
+      ]
+    }
+  }
+]

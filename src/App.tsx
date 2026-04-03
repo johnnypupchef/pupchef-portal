@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import AppDeepLinks from "./components/AppDeepLinks";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
@@ -50,6 +51,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
+      <AppDeepLinks />
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
