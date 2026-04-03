@@ -89,8 +89,8 @@ lint/tmp/
 # Android Profiling
 *.hprof
 
-# Cordova plugins for Capacitor
-capacitor-cordova-android-plugins
+# Cordova plugins: build/ is covered by `build/` above — do not ignore the whole module
+# (the Gradle module must be in git so Android Studio / Gradle always see it).
 
 # Copied web assets
 app/src/main/assets/public
