@@ -2,6 +2,8 @@
 
 **Quick checklist:** [`MOBILE_SETUP_CHECKLIST.md`](./MOBILE_SETUP_CHECKLIST.md)
 
+**Native vs web UI:** `Capacitor.isNativePlatform()` (see `src/lib/nativeApp.ts`) lets React show a different layout in the app shell vs the browser — e.g. login page hides marketing chrome and uses a card layout on native only.
+
 The portal is a **Vite + React** web app. **Capacitor** wraps the production build (`dist/`) in native **iOS** and **Android** WebViews so customers get the **same** account experience in the browser and in the stores.
 
 ## What you need on your machine
