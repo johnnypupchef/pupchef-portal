@@ -4,6 +4,8 @@ The WebView loads files from `app/src/main/assets/public/` (copied from the Vite
 
 **Android Studio “Run”** triggers a Gradle `preBuild` step that runs `npm run mobile:copy:android` in the parent `pupchef-portal` folder (`vite build` + **`cap copy android`** only). It does **not** run `cap sync` during the Gradle build — `cap sync` can rewrite native projects **mid-build** and delete files such as `aar-metadata.properties` or merged manifests.
 
+**Live reload (Vite in the WebView):** see **`docs/ANDROID_LIVE_RELOAD.md`**. While using it, set **`SKIP_CAP_WEB_COPY=1`** in the Run configuration so Gradle does not overwrite the dev `capacitor` config.
+
 Use full sync when you add/change native plugins or Capacitor config (from `pupchef-portal`):
 
 ```bash

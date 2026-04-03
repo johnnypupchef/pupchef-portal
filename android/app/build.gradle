@@ -81,5 +81,10 @@ afterEvaluate {
         }
     }
 
-    preBuild.dependsOn(tasks.named('capacitorCopyWebAssets'))
+    // When using live reload (`npm run mobile:dev:android`), set SKIP_CAP_WEB_COPY=1 in the
+    // Android Studio Run Configuration so Gradle does not run `mobile:copy:android` and
+    // overwrite capacitor.config.json (see docs/ANDROID_LIVE_RELOAD.md).
+    if (System.getenv("SKIP_CAP_WEB_COPY") != "1") {
+        preBuild.dependsOn(tasks.named('capacitorCopyWebAssets'))
+    }
 }
