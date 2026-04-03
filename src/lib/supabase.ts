@@ -18,6 +18,7 @@ export function getSupabaseBrowserClient(): SupabaseClient {
       auth: {
         // We handle /auth/callback explicitly in AuthCallbackPage (hash + PKCE code).
         detectSessionInUrl: false,
+        /** Refresh tokens persist in WebView localStorage — session survives restarts until app uninstall/clear data. */
         persistSession: true,
         autoRefreshToken: true,
         storage: typeof window !== "undefined" ? window.localStorage : undefined,
