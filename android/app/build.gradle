@@ -52,3 +52,16 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+// Before every APK build: rebuild web app and copy dist → app/src/main/assets/public (Capacitor).
+// So Android Studio Run always picks up portal changes without a separate terminal step.
+def portalRoot = file("${projectDir}/../..").canonicalFile
+tasks.register('capacitorCopyWebAssets', Exec) {
+    group = 'capacitor'
+    description = 'npm run mobile:build:android (Vite build + cap sync android)'
+    workingDir portalRoot
+    commandLine 'npm', 'run', 'mobile:build:android'
+}
+afterEvaluate {
+    preBuild.dependsOn(tasks.named('capacitorCopyWebAssets'))
+}
