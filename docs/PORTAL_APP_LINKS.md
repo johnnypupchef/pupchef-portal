@@ -1,26 +1,21 @@
-# Portal magic links → mobile app (App Links / Universal Links)
+# Portal magic links → mobile app
 
-The native app requests Supabase magic links with `emailRedirectTo` = **`https://my.pupchef.ae/auth/callback`** (override with `VITE_PORTAL_URL`). That URL must match:
+## Why `pupchef://` (not only `https://`)
 
-1. **Supabase Dashboard** → Authentication → URL Configuration → **Redirect URLs**: add `https://my.pupchef.ae/auth/callback` (and your staging URL if any).
+If the magic link uses **`redirect_to=https://my.pupchef.ae/auth/callback`**, Chrome (or the in-app browser) **keeps the whole flow in the browser** after Supabase verifies: the redirect lands on your site **inside the same tab**, so you get logged in on the web, not in the Capacitor app.
 
-2. **Deployed portal** (`my.pupchef.ae`): must serve **`/.well-known/assetlinks.json`** from this repo (`public/.well-known/` → Vite `dist`). After deploy, verify:
-   - `https://my.pupchef.ae/.well-known/assetlinks.json` returns **200** with `Content-Type: application/json` (no HTML redirect).
+The native app therefore requests Supabase with **`emailRedirectTo` = `pupchef://auth/callback`** (override with `VITE_NATIVE_AUTH_REDIRECT`). After verify, Supabase redirects to that custom URL; Android resolves it to your app instead of leaving you in Chrome.
 
-3. **SHA-256 fingerprints** in `assetlinks.json`:
-   - **Emulator and Android Studio** use the **debug keystore**, not Google Play. Play App Signing only matters after you ship to the store (then add that certificate’s SHA-256 alongside debug if you test release builds).
-   - Debug fingerprint:
+1. **Supabase Dashboard** → Authentication → URL Configuration → **Redirect URLs**: add **`pupchef://auth/callback`** (keep `https://my.pupchef.ae/auth/callback` too if you use web login).
 
-     ```bash
-     keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
-     ```
+2. **Android** (`AndroidManifest.xml`): intent-filter for `pupchef` → `auth` → path `/callback` is already in this repo.
 
-   - Copy the **SHA256** line and remove **colons** → 64 hex characters. The repo currently includes **one** debug fingerprint; add more array entries if teammates have different debug keystores or when you add a release signing key.
+3. **`/.well-known/assetlinks.json`** (HTTPS App Links): still useful if something opens `https://my.pupchef.ae/auth/...` from outside Chrome’s redirect chain; deploy as before.
 
-4. **Android Studio**: uninstall the app, reinstall, then open a magic link again. Google verifies App Links asynchronously; first open may still ask “Open with Chrome or PupChef” until verification succeeds.
+4. **SHA-256** in `assetlinks.json`: debug keystore for emulator; add Play signing when you ship. See keytool commands in git history or Android docs.
 
-5. **Custom domain**: If `VITE_PORTAL_URL` is not `https://my.pupchef.ae`, update **`android/app/src/main/AndroidManifest.xml`** intent-filter `android:host` to match, redeploy `assetlinks.json` on that host, and add the same URL in Supabase.
+5. **Custom domain**: If you change `VITE_PORTAL_URL` / HTTPS host, update the HTTPS intent-filter and `assetlinks.json` on that host.
 
 ## iOS (optional)
 
-Add Associated Domains in Xcode (`applinks:my.pupchef.ae`) and host **`/.well-known/apple-app-site-association`** (no extension) with your Team ID and bundle id. Same redirect URL in Supabase.
+Register the same custom URL scheme in Xcode, or use Universal Links with `apple-app-site-association` and add the HTTPS callback to Supabase.

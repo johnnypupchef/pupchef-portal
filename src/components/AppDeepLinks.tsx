@@ -6,7 +6,15 @@ import { isNativeApp } from "../lib/platform";
 function handleAuthCallbackUrl(url: string, navigate: ReturnType<typeof useNavigate>): void {
   try {
     const u = new URL(url);
-    if (!u.pathname.includes("/auth/callback")) return;
+    const isHttps = u.protocol === "https:" || u.protocol === "http:";
+    const isCustom = u.protocol === "pupchef:";
+    if (isHttps) {
+      if (!u.pathname.includes("/auth/callback")) return;
+    } else if (isCustom) {
+      if (u.hostname !== "auth" || !u.pathname.replace(/\/$/, "").endsWith("/callback")) return;
+    } else {
+      return;
+    }
     navigate(`/auth/callback${u.search}${u.hash}`, { replace: true });
   } catch {
     /* ignore */
@@ -14,7 +22,7 @@ function handleAuthCallbackUrl(url: string, navigate: ReturnType<typeof useNavig
 }
 
 /**
- * When the app opens from an Android App Link / Universal Link (magic link in email),
+ * When the app opens from a custom scheme (pupchef://) or HTTPS App Link (magic link),
  * route into /auth/callback with the same hash/query Supabase appended.
  */
 export default function AppDeepLinks() {

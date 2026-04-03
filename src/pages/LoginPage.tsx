@@ -10,7 +10,7 @@ import MarketingFooter from "../components/marketing/MarketingFooter";
 import LoginSupportSection from "../components/marketing/LoginSupportSection";
 
 import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
-import { getPortalPublicOrigin } from "../lib/portalUrl";
+import { getNativeMagicLinkRedirectUrl } from "../lib/portalUrl";
 
 const SLIDE4_THUMB =
   "https://rkgrfzsmkymkfnsvewzo.supabase.co/storage/v1/object/public/label-assets/quiz/slide-4.jpg";
@@ -61,9 +61,9 @@ export default function LoginPage() {
         return;
       }
 
-      // Native: magic link must use real HTTPS host (App Links + Supabase redirect allow list), not WebView localhost.
+      // Native: custom scheme so Supabase → redirect opens the app (https would stay in Chrome).
       const redirectTo = native
-        ? `${getPortalPublicOrigin()}/auth/callback`
+        ? getNativeMagicLinkRedirectUrl()
         : `${window.location.origin.trim()}/auth/callback`;
       const supabase = getSupabaseBrowserClient();
       const { error: otpError } = await supabase.auth.signInWithOtp({
