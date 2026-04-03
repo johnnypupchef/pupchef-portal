@@ -4,7 +4,10 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase"
 import { MARKETING_ORIGIN } from "../lib/marketingSite";
 import MarketingAnnouncementBar from "../components/marketing/MarketingAnnouncementBar";
 import MarketingNavbar from "../components/marketing/MarketingNavbar";
-import MarketingFooter from "../components/marketing/MarketingFooter";
+import LoginSupportSection from "../components/marketing/LoginSupportSection";
+
+const SLIDE4_THUMB =
+  "https://rkgrfzsmkymkfnsvewzo.supabase.co/storage/v1/object/public/label-assets/quiz/slide-4.jpg";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "https://pup-ops.vercel.app";
 const SIGNUP_URL = `${MARKETING_ORIGIN}/signup`;
@@ -76,21 +79,31 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <MarketingAnnouncementBar />
-      <MarketingNavbar />
+      <MarketingNavbar minimal />
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 py-10 sm:py-16 w-full">
         <div className="w-full max-w-[400px] flex flex-col items-stretch">
           {!sent ? (
             <>
-              <h1
-                className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest text-center mb-2"
-                style={{
-                  fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
-                  letterSpacing: "-2.3px",
-                }}
-              >
-                Welcome!
-              </h1>
+              <div className="flex flex-row flex-wrap items-center justify-center gap-2 mb-2">
+                <h1
+                  className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest text-center m-0"
+                  style={{
+                    fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
+                    letterSpacing: "-2.3px",
+                  }}
+                >
+                  Welcome!
+                </h1>
+                <img
+                  src={SLIDE4_THUMB}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="rounded-sm object-cover shrink-0"
+                  style={{ width: 28, height: 28, maxHeight: 28 }}
+                />
+              </div>
               <p
                 className="text-center text-login-muted text-[15px] mb-8 font-body"
                 style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
@@ -186,7 +199,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <MarketingFooter />
+      <LoginSupportSection />
     </div>
   );
 }

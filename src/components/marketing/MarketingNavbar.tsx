@@ -14,6 +14,46 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ];
 
+/** Logo only — used on login (no menu, no Log In). */
+function MarketingNavbarMinimal() {
+  return (
+    <nav
+      style={{
+        display: "block",
+        backgroundColor: "#ffffff",
+        borderBottom: "1px solid #f0ebe4",
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          margin: "0 auto",
+          padding: "0 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: 72,
+          boxSizing: "border-box",
+        }}
+      >
+        <a href={`${MARKETING_ORIGIN}/`} style={{ display: "flex", alignItems: "center" }}>
+          <img
+            src={LOGO_URL}
+            alt="PupChef"
+            width={160}
+            height={52}
+            style={{ objectFit: "contain", height: "52px", width: "auto" }}
+          />
+        </a>
+      </div>
+    </nav>
+  );
+}
+
 function HamburgerButton({ menuOpen, onClick }: { menuOpen: boolean; onClick: () => void }) {
   return (
     <button
@@ -66,7 +106,7 @@ function HamburgerButton({ menuOpen, onClick }: { menuOpen: boolean; onClick: ()
   );
 }
 
-export default function MarketingNavbar() {
+function MarketingNavbarFull() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showRedeem, setShowRedeem] = useState(false);
 
@@ -551,4 +591,9 @@ export default function MarketingNavbar() {
       `}</style>
     </nav>
   );
+}
+
+export default function MarketingNavbar({ minimal = false }: { minimal?: boolean }) {
+  if (minimal) return <MarketingNavbarMinimal />;
+  return <MarketingNavbarFull />;
 }
