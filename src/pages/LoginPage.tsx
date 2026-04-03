@@ -81,17 +81,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div
+      className={`min-h-screen flex flex-col bg-white ${
+        native && !sent ? "min-h-[100dvh] max-h-[100dvh]" : ""
+      }`}
+    >
       {native ? <NativeLoginAnnouncementBar /> : <MarketingAnnouncementBar />}
       <MarketingNavbar minimal={native} />
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 py-10 sm:py-16 w-full">
-        <div className="w-full max-w-[400px] flex flex-col items-stretch">
+      <main
+        className={`flex-1 flex flex-col items-center px-4 sm:px-6 w-full min-h-0 ${
+          native && !sent ? "py-3 pt-4 pb-1" : "py-10 sm:py-16"
+        }`}
+      >
+        <div className="w-full max-w-[400px] flex flex-col items-stretch min-h-0">
           {!sent ? (
             <>
               {native ? (
                 <div
-                  className="mb-2 box-border px-4 sm:px-6"
+                  className="box-border px-4 sm:px-6 mb-1"
                   style={{
                     width: "100vw",
                     marginLeft: "calc(50% - 50vw)",
@@ -103,7 +111,7 @@ export default function LoginPage() {
                   >
                     <div aria-hidden className="min-w-0" />
                     <h1
-                      className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest m-0 text-center"
+                      className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest m-0 text-center self-center"
                       style={{
                         fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
                         letterSpacing: "-2.3px",
@@ -111,13 +119,13 @@ export default function LoginPage() {
                     >
                       Welcome!
                     </h1>
-                    <div className="flex justify-end items-center min-w-0">
+                    <div className="flex justify-end items-center min-w-0 pt-2">
                       <img
                         src={SLIDE4_THUMB}
                         alt=""
                         width={96}
                         height={96}
-                        className="rounded-xl object-cover shrink-0 shadow-md border border-black/[0.08]"
+                        className="rounded-xl object-cover shrink-0 border border-black/[0.08]"
                         style={{ width: 88, height: 88, minWidth: 88, minHeight: 88 }}
                       />
                     </div>
@@ -135,13 +143,15 @@ export default function LoginPage() {
                 </h1>
               )}
               <p
-                className="text-center text-login-muted text-[15px] mb-8 font-body"
+                className={`text-center text-login-muted text-[15px] font-body ${
+                  native ? "mb-3" : "mb-8"
+                }`}
                 style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
               >
                 Please log in to continue
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-4 w-full">
+              <form onSubmit={handleSubmit} className={`w-full ${native ? "space-y-3" : "space-y-4"}`}>
                 <input
                   type="email"
                   value={email}
@@ -149,7 +159,9 @@ export default function LoginPage() {
                   placeholder="Email"
                   required
                   autoComplete="email"
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-forest/15 focus:border-forest"
+                  className={`w-full rounded-md border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-forest/15 focus:border-forest ${
+                    native ? "py-3" : "py-3.5"
+                  }`}
                   style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
                 />
                 {error && (
@@ -160,7 +172,9 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-md bg-login-grey text-white py-3.5 text-sm font-bold disabled:opacity-50 hover:opacity-95 transition-opacity"
+                  className={`w-full rounded-md bg-login-grey text-white text-sm font-bold disabled:opacity-50 hover:opacity-95 transition-opacity ${
+                    native ? "py-3" : "py-3.5"
+                  }`}
                   style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
                 >
                   {loading ? "Sending…" : "Log In"}
@@ -168,23 +182,25 @@ export default function LoginPage() {
               </form>
 
               <p
-                className="text-center text-xs text-gray-500 mt-3"
+                className={`text-center text-xs text-gray-500 ${native ? "mt-2" : "mt-3"}`}
                 style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
               >
                 We&apos;ll email you a one-click link — no password.
               </p>
 
-              <div className="border-t border-gray-200 my-10 w-full" />
+              <div className={`border-t border-gray-200 w-full ${native ? "my-4" : "my-10"}`} />
 
               <h2
-                className="text-center text-forest font-bold text-base mb-4"
+                className={`text-center text-forest font-bold text-base ${native ? "mb-2" : "mb-4"}`}
                 style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
               >
                 New to Pupchef?
               </h2>
               <a
                 href={SIGNUP_URL}
-                className="flex w-full items-center justify-center rounded-md border-2 border-coral bg-transparent py-3.5 text-sm font-bold text-coral hover:bg-coral/5 transition-colors"
+                className={`flex w-full items-center justify-center rounded-md border-2 border-coral bg-transparent text-sm font-bold text-coral hover:bg-coral/5 transition-colors ${
+                  native ? "py-2.5" : "py-3.5"
+                }`}
                 style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
               >
                 Build Your Plan

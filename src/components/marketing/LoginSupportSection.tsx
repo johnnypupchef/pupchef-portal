@@ -6,11 +6,12 @@ const WHATSAPP_HREF = "https://wa.me/971543573313";
 export default function LoginSupportSection() {
   return (
     <section
-      className="login-support-section"
+      className="login-support-section shrink-0"
       style={{
         width: "100%",
         marginTop: "auto",
-        padding: "32px 20px 40px",
+        padding: "4px 16px 12px",
+        transform: "translateY(-6px)",
         boxSizing: "border-box",
         fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
       }}
@@ -20,15 +21,15 @@ export default function LoginSupportSection() {
           <img
             src={SUPPORT_ILLUSTRATION}
             alt=""
-            width={180}
-            height={120}
-            style={{ width: 180, height: "auto", display: "block", margin: "0 auto 14px" }}
+            width={150}
+            height={100}
+            style={{ width: 150, height: "auto", display: "block", margin: "0 auto 8px" }}
           />
           <p
             style={{
               fontWeight: 700,
-              fontSize: 16,
-              lineHeight: 1.35,
+              fontSize: 15,
+              lineHeight: 1.3,
               color: "#333",
               textAlign: "center",
               margin: 0,
@@ -42,11 +43,11 @@ export default function LoginSupportSection() {
             rel="noopener noreferrer"
             style={{
               display: "inline-block",
-              marginTop: 4,
+              marginTop: 2,
               color: "#E85A3A",
               textDecoration: "none",
               fontWeight: 700,
-              fontSize: 18,
+              fontSize: 17,
               letterSpacing: "-0.02em",
             }}
           >
