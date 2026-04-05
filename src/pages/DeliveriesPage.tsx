@@ -6,6 +6,8 @@ interface Schedule {
 }
 interface Delivery {
   id: string; delivery_date: string; delivery_type: string; status: string;
+  delivery_photo_url: string | null;
+  delivered_at: string | null;
   schedules: Schedule[];
 }
 
@@ -55,6 +57,23 @@ function DeliveryCard({ delivery, onSkip, skipping }: {
 
       {expanded && (
         <div className="px-4 pb-4 border-t border-cream-dark">
+          {/* Proof of delivery photo */}
+          {delivery.status === "delivered" && delivery.delivery_photo_url && (
+            <div className="mt-3 mb-3">
+              <p className="text-xs font-body text-brand/40 uppercase tracking-wide mb-1.5">Proof of Delivery</p>
+              <img
+                src={delivery.delivery_photo_url}
+                alt="Delivery photo"
+                className="w-full rounded-xl object-cover max-h-48 border border-cream-dark"
+              />
+              {delivery.delivered_at && (
+                <p className="text-xs text-brand/40 mt-1 font-body">
+                  Delivered at {new Date(delivery.delivered_at).toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="mt-3 space-y-2">
             {delivery.schedules.map((s) => (
               <div key={s.id} className="flex items-center justify-between text-sm bg-cream rounded-xl px-3 py-2">
