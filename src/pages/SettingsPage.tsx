@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { MapContainer, TileLayer, CircleMarker, useMapEvents } from "react-leaflet";
 
 interface ProfileData {
   first_name: string | null; last_name: string | null; phone: string | null;
   area: string | null; address_line_1: string | null; address_line_2: string | null;
   city: string | null; emirate: string | null;
+  latitude: number | null; longitude: number | null;
 }
 
 const EMIRATES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"];
@@ -30,11 +32,50 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass = "w-full border border-cream-dark rounded-xl px-4 py-3 text-sm text-brand bg-cream focus:outline-none focus:ring-2 focus:ring-coral/40 focus:border-coral transition font-body";
 
+function MapPinPicker({
+  lat,
+  lng,
+  onChange,
+}: {
+  lat: number | null;
+  lng: number | null;
+  onChange: (lat: number, lng: number) => void;
+}) {
+  const dubai: [number, number] = [25.2048, 55.2708];
+  const center: [number, number] =
+    lat != null && lng != null ? [lat, lng] : dubai;
+
+  function ClickHandler() {
+    useMapEvents({
+      click(e) {
+        onChange(e.latlng.lat, e.latlng.lng);
+      },
+    });
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-cream-dark">
+      <MapContainer center={center} zoom={12} style={{ height: 260, width: "100%" }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <ClickHandler />
+        {lat != null && lng != null && (
+          <CircleMarker center={[lat, lng]} radius={9} pathOptions={{ color: "#ea580c", fillColor: "#fb923c", fillOpacity: 0.9 }} />
+        )}
+      </MapContainer>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { person } = useAuth();
   const [form, setForm] = useState<ProfileData>({
     first_name: null, last_name: null, phone: null,
     area: null, address_line_1: null, address_line_2: null, city: null, emirate: null,
+    latitude: null, longitude: null,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,6 +93,8 @@ export default function SettingsPage() {
         address_line_2: d.person.address_line_2,
         city: d.person.city,
         emirate: d.person.emirate,
+        latitude: d.person.latitude,
+        longitude: d.person.longitude,
       }))
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
@@ -141,6 +184,19 @@ export default function SettingsPage() {
               </select>
             </Field>
           </div>
+          <Field label="Map Pin (tap map to set exact location)">
+            <MapPinPicker
+              lat={form.latitude}
+              lng={form.longitude}
+              onChange={(lat, lng) => setForm((f) => ({ ...f, latitude: lat, longitude: lng }))}
+            />
+            <p className="text-xs text-brand/50 font-body mt-2">
+              Current pin:{" "}
+              {form.latitude != null && form.longitude != null
+                ? `${form.latitude.toFixed(6)}, ${form.longitude.toFixed(6)}`
+                : "not set"}
+            </p>
+          </Field>
         </SectionCard>
 
         <button
