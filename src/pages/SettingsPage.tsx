@@ -52,25 +52,85 @@ const inputClass =
 
 // ── Google Maps helpers ────────────────────────────────────────────────────────
 
-const MAPS_API_KEY = "AIzaSyB0EtbCcH9jM9KSIckCzlsPMaJnF9Ys3wM";
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyB0EtbCcH9jM9KSIckCzlsPMaJnF9Ys3wM";
+const MAPS_SCRIPT_ID = "pc-portal-google-maps-js";
 let mapsScriptLoaded = false;
 let mapsReady = false;
+let mapsLoadError: string | null = null;
 const mapsReadyCallbacks: (() => void)[] = [];
+const mapsErrorCallbacks: ((message: string) => void)[] = [];
 
-function ensureGoogleMaps(cb: () => void) {
+function resolveMapsReady() {
+  mapsReady = true;
+  mapsLoadError = null;
+  mapsReadyCallbacks.forEach((fn) => fn());
+  mapsReadyCallbacks.length = 0;
+  mapsErrorCallbacks.length = 0;
+}
+
+function rejectMapsLoad(message: string) {
+  mapsLoadError = message;
+  mapsErrorCallbacks.forEach((fn) => fn(message));
+  mapsErrorCallbacks.length = 0;
+}
+
+function ensureGoogleMaps(cb: () => void, onError?: (message: string) => void) {
+  if (!MAPS_API_KEY) {
+    onError?.("Google Maps key is missing.");
+    return;
+  }
+  if ((window as any).google?.maps) {
+    resolveMapsReady();
+    cb();
+    return;
+  }
   if (mapsReady) { cb(); return; }
+  if (mapsLoadError) {
+    onError?.(mapsLoadError);
+    return;
+  }
+
   mapsReadyCallbacks.push(cb);
+  if (onError) mapsErrorCallbacks.push(onError);
   if (mapsScriptLoaded) return;
   mapsScriptLoaded = true;
+
   (window as any).__portalInitGoogleMaps = () => {
-    mapsReady = true;
-    mapsReadyCallbacks.forEach((fn) => fn());
-    mapsReadyCallbacks.length = 0;
+    resolveMapsReady();
   };
+
+  const existing = document.getElementById(MAPS_SCRIPT_ID) as HTMLScriptElement | null;
+  if (existing) {
+    existing.addEventListener(
+      "load",
+      () => {
+        if ((window as any).google?.maps) resolveMapsReady();
+      },
+      { once: true }
+    );
+    existing.addEventListener(
+      "error",
+      () => {
+        rejectMapsLoad("Failed to load Google Maps script.");
+      },
+      { once: true }
+    );
+    return;
+  }
+
   const s = document.createElement("script");
+  s.id = MAPS_SCRIPT_ID;
   s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&libraries=places&callback=__portalInitGoogleMaps&loading=async`;
   s.async = true;
   s.defer = true;
+  s.onerror = () => {
+    rejectMapsLoad("Failed to load Google Maps. Please try again.");
+  };
+  window.setTimeout(() => {
+    if (!mapsReady && !(window as any).google?.maps) {
+      rejectMapsLoad("Google Maps did not initialize.");
+    }
+  }, 8000);
   document.head.appendChild(s);
 }
 
@@ -124,10 +184,11 @@ function AddressPickerModal({
   const [streetName, setStreetName] = useState("");
   const [community, setCommunity] = useState("");
   const [detailError, setDetailError] = useState("");
+  const [mapError, setMapError] = useState("");
 
   // Init Google Maps when the modal mounts
   useEffect(() => {
-    ensureGoogleMaps(() => initMap());
+    ensureGoogleMaps(() => initMap(), (message) => setMapError(message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -271,6 +332,7 @@ function AddressPickerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white">
+      <style>{`.pac-container{z-index:99999 !important;}`}</style>
       {/* ── Step: Map ── */}
       {step === "map" && (
         <div className="flex flex-col h-full">
@@ -287,6 +349,9 @@ function AddressPickerModal({
           <p className="px-4 text-xs text-brand/50 font-body mb-2">
             📍 Please be precise — we use this pin for your deliveries.
           </p>
+          {mapError && (
+            <p className="px-4 text-xs text-red-600 font-body mb-2">{mapError}</p>
+          )}
 
           {/* Map */}
           <div className="relative flex-1 mx-4 rounded-2xl overflow-hidden shadow-md bg-gray-200">
@@ -299,6 +364,7 @@ function AddressPickerModal({
                 placeholder="Search address, building or community…"
                 className="flex-1 py-3 text-sm bg-transparent outline-none text-brand font-body"
                 autoComplete="off"
+                disabled={Boolean(mapError)}
               />
             </div>
             {/* Map canvas */}
@@ -320,6 +386,7 @@ function AddressPickerModal({
               <span className="flex-1 text-xs text-gray-600 font-body leading-tight">{placeName}</span>
               <button
                 onClick={handleMapNext}
+                disabled={Boolean(mapError)}
                 className="flex-shrink-0 bg-brand text-white rounded-xl px-5 py-2 text-sm font-heading font-bold"
               >
                 Next
