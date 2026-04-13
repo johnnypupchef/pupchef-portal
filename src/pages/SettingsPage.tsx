@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,34 @@ function getAddressComponent(
   return "";
 }
 
+type NominatimSuggestion = {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+};
+
+function LeafletRecenter({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([lat, lng], map.getZoom(), { animate: true });
+  }, [lat, lng, map]);
+  return null;
+}
+
+function LeafletClickCapture({
+  onPick,
+}: {
+  onPick: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      onPick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 // ── Address picker modal ───────────────────────────────────────────────────────
 
 type AddrStep = "map" | "type" | "details";
@@ -185,19 +214,82 @@ function AddressPickerModal({
   const [community, setCommunity] = useState("");
   const [detailError, setDetailError] = useState("");
   const [mapError, setMapError] = useState("");
+  const [useFallbackMap, setUseFallbackMap] = useState(false);
+  const [fallbackCenter, setFallbackCenter] = useState<[number, number]>([
+    initialLat ?? 25.2048,
+    initialLng ?? 55.2708,
+  ]);
+  const [fallbackQuery, setFallbackQuery] = useState("");
+  const [fallbackSuggestions, setFallbackSuggestions] = useState<NominatimSuggestion[]>([]);
+  const fallbackInitialized = useRef(false);
 
   // Init Google Maps when the modal mounts
   useEffect(() => {
-    ensureGoogleMaps(() => initMap(), (message) => setMapError(message));
+    ensureGoogleMaps(
+      () => initMap(),
+      (message) => {
+        setMapError(message);
+        setUseFallbackMap(true);
+      }
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Re-trigger resize when returning to map step
   useEffect(() => {
-    if (step === "map" && mapRef.current) {
+    if (step === "map" && mapRef.current && !useFallbackMap) {
       google.maps.event.trigger(mapRef.current, "resize");
     }
-  }, [step]);
+  }, [step, useFallbackMap]);
+
+  // Fallback search suggestions via Nominatim
+  useEffect(() => {
+    if (!useFallbackMap) return;
+    const q = fallbackQuery.trim();
+    if (q.length < 3) {
+      setFallbackSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=ae&limit=5&q=${encodeURIComponent(q)}`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as NominatimSuggestion[];
+        setFallbackSuggestions(Array.isArray(data) ? data : []);
+      } catch {
+        // ignore transient network errors for suggestion typing
+      }
+    }, 260);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(t);
+    };
+  }, [fallbackQuery, useFallbackMap]);
+
+  useEffect(() => {
+    if (!useFallbackMap || fallbackInitialized.current) return;
+    fallbackInitialized.current = true;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        pinLatRef.current = lat;
+        pinLngRef.current = lng;
+        setFallbackCenter([lat, lng]);
+        await reverseGeocodeFallback(lat, lng);
+      },
+      () => {
+        // keep Dubai fallback center
+      },
+      { timeout: 6000, maximumAge: 0 }
+    );
+  }, [useFallbackMap]);
 
   function extractCityEmirate(comps: google.maps.GeocoderAddressComponent[]) {
     const loc = getAddressComponent(comps, ["locality", "administrative_area_level_2"]);
@@ -221,9 +313,35 @@ function AddressPickerModal({
     });
   }
 
+  async function reverseGeocodeFallback(lat: number, lng: number) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+      );
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        display_name?: string;
+        address?: Record<string, string>;
+      };
+      const address = data.address || {};
+      const city = address.city || address.town || address.village || address.municipality;
+      const state = address.state || address.state_district;
+      if (city) geoCity.current = city;
+      if (state) geoEmirate.current = state;
+      setPlaceName(data.display_name || "Selected location");
+    } catch {
+      setPlaceName("Selected location");
+    }
+  }
+
   function initMap() {
     if (!mapDivRef.current || !searchRef.current) return;
     if (mapRef.current) return;
+    if (!(window as any).google?.maps) {
+      setMapError("Google Maps unavailable. Using backup map.");
+      setUseFallbackMap(true);
+      return;
+    }
 
     const center = { lat: pinLatRef.current, lng: pinLngRef.current };
     const map = new google.maps.Map(mapDivRef.current, {
@@ -356,7 +474,8 @@ function AddressPickerModal({
           {/* Map */}
           <div className="relative flex-1 mx-4 rounded-2xl overflow-hidden shadow-md bg-gray-200">
             {/* Floating search */}
-            <div className="absolute top-3 left-3 right-3 z-10 flex items-center bg-white rounded-xl shadow-lg px-3">
+            <div className="absolute top-3 left-3 right-3 z-20">
+              <div className="flex items-center bg-white rounded-xl shadow-lg px-3">
               <span className="text-sm opacity-50 mr-2">🔍</span>
               <input
                 ref={searchRef}
@@ -364,29 +483,89 @@ function AddressPickerModal({
                 placeholder="Search address, building or community…"
                 className="flex-1 py-3 text-sm bg-transparent outline-none text-brand font-body"
                 autoComplete="off"
-                disabled={Boolean(mapError)}
+                disabled={Boolean(mapError) && !useFallbackMap}
+                value={useFallbackMap ? fallbackQuery : undefined}
+                onChange={
+                  useFallbackMap
+                    ? (e) => setFallbackQuery(e.target.value)
+                    : undefined
+                }
               />
             </div>
-            {/* Map canvas */}
-            <div ref={mapDivRef} style={{ width: "100%", height: "100%" }} />
-            {/* Fixed center pin */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ bottom: 64 }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 28 40"
-                style={{ width: 36, transform: "translateY(-50%)", filter: "drop-shadow(0 4px 8px rgba(0,0,0,.3))" }}
-              >
-                <path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 26 14 26S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="#E63946" />
-                <circle cx="14" cy="14" r="5.5" fill="#fff" />
-              </svg>
+              {useFallbackMap && fallbackSuggestions.length > 0 && (
+                <div className="mt-2 bg-white rounded-xl shadow-lg border border-cream-dark overflow-hidden max-h-56 overflow-y-auto">
+                  {fallbackSuggestions.map((s) => (
+                    <button
+                      key={s.place_id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-xs text-brand hover:bg-cream border-b border-cream-dark last:border-0"
+                      onClick={async () => {
+                        const lat = Number(s.lat);
+                        const lng = Number(s.lon);
+                        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                        pinLatRef.current = lat;
+                        pinLngRef.current = lng;
+                        setFallbackCenter([lat, lng]);
+                        setPlaceName(s.display_name);
+                        setFallbackQuery(s.display_name);
+                        setFallbackSuggestions([]);
+                        await reverseGeocodeFallback(lat, lng);
+                      }}
+                    >
+                      {s.display_name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            {/* Map canvas */}
+            {!useFallbackMap && (
+              <>
+                <div ref={mapDivRef} style={{ width: "100%", height: "100%" }} />
+                {/* Fixed center pin */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ bottom: 64 }}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 28 40"
+                    style={{ width: 36, transform: "translateY(-50%)", filter: "drop-shadow(0 4px 8px rgba(0,0,0,.3))" }}
+                  >
+                    <path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 26 14 26S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="#E63946" />
+                    <circle cx="14" cy="14" r="5.5" fill="#fff" />
+                  </svg>
+                </div>
+              </>
+            )}
+            {useFallbackMap && (
+              <MapContainer
+                center={fallbackCenter}
+                zoom={14}
+                style={{ width: "100%", height: "100%" }}
+                attributionControl={false}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <LeafletRecenter lat={fallbackCenter[0]} lng={fallbackCenter[1]} />
+                <LeafletClickCapture
+                  onPick={async (lat, lng) => {
+                    pinLatRef.current = lat;
+                    pinLngRef.current = lng;
+                    setFallbackCenter([lat, lng]);
+                    await reverseGeocodeFallback(lat, lng);
+                  }}
+                />
+                <CircleMarker
+                  center={fallbackCenter}
+                  radius={10}
+                  pathOptions={{ color: "#0f766e", fillColor: "#14b8a6", fillOpacity: 0.85 }}
+                />
+              </MapContainer>
+            )}
             {/* Bottom place card */}
             <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2 flex items-center gap-2" style={{ minHeight: 56 }}>
               <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">📍</div>
               <span className="flex-1 text-xs text-gray-600 font-body leading-tight">{placeName}</span>
               <button
                 onClick={handleMapNext}
-                disabled={Boolean(mapError)}
+                disabled={Boolean(mapError) && !useFallbackMap}
                 className="flex-shrink-0 bg-brand text-white rounded-xl px-5 py-2 text-sm font-heading font-bold"
               >
                 Next
