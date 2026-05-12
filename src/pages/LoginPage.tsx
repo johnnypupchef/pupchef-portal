@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Check } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "../lib/supabase";
 import { MARKETING_ORIGIN } from "../lib/marketingSite";
 import { isNativeApp } from "../lib/platform";
@@ -11,9 +12,6 @@ import LoginSupportSection from "../components/marketing/LoginSupportSection";
 
 import { getPortalApiBaseUrl } from "../lib/apiBaseUrl";
 import { getNativeMagicLinkRedirectUrl } from "../lib/portalUrl";
-
-const SLIDE4_THUMB =
-  "https://rkgrfzsmkymkfnsvewzo.supabase.co/storage/v1/object/public/label-assets/quiz/slide-4.jpg";
 
 const API_URL = getPortalApiBaseUrl();
 const SIGNUP_URL = `${MARKETING_ORIGIN}/signup`;
@@ -35,7 +33,9 @@ export default function LoginPage() {
     e.preventDefault();
     if (!email.trim()) return;
     if (!isSupabaseConfigured()) {
-      setError("Portal is missing Supabase configuration (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).");
+      setError(
+        "Portal is missing Supabase configuration (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).",
+      );
       return;
     }
     setLoading(true);
@@ -61,7 +61,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Native: static handoff URL → pupchef:// (not /auth/callback, which logs in inside Chrome).
       const redirectTo = native
         ? getNativeMagicLinkRedirectUrl()
         : `${window.location.origin.trim()}/auth/callback`;
@@ -85,172 +84,228 @@ export default function LoginPage() {
     }
   }
 
-  return (
-    <div
-      className={`min-h-screen flex flex-col bg-white ${
-        native && !sent ? "min-h-[100dvh] max-h-[100dvh]" : ""
-      }`}
-    >
-      {native ? <NativeLoginAnnouncementBar /> : <MarketingAnnouncementBar />}
-      <MarketingNavbar minimal={native} />
+  const formCard = !sent ? (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ textAlign: "center" }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 400,
+            fontSize: 44,
+            letterSpacing: "-0.025em",
+            color: "var(--forest)",
+            margin: 0,
+            lineHeight: 0.95,
+          }}
+        >
+          Welcome back.
+        </h1>
+        <p
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 400,
+            fontStyle: "italic",
+            fontSize: 22,
+            color: "var(--orange)",
+            margin: "8px 0 0",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          The pack's waiting.
+        </p>
+      </div>
 
-      <main
-        className={`flex-1 flex flex-col items-center px-4 sm:px-6 w-full min-h-0 ${
-          native && !sent ? "py-3 pt-4 pb-1" : "py-10 sm:py-16"
-        }`}
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 12 }}
       >
-        <div className="w-full max-w-[400px] flex flex-col items-stretch min-h-0">
-          {!sent ? (
-            <>
-              {native ? (
-                <div
-                  className="box-border px-4 sm:px-6 mb-1"
-                  style={{
-                    width: "100vw",
-                    marginLeft: "calc(50% - 50vw)",
-                  }}
-                >
-                  <div
-                    className="grid w-full items-center gap-x-3"
-                    style={{ gridTemplateColumns: "minmax(0,1fr) auto minmax(0,1fr)" }}
-                  >
-                    <div aria-hidden className="min-w-0" />
-                    <h1
-                      className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest m-0 text-center self-center"
-                      style={{
-                        fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
-                        letterSpacing: "-2.3px",
-                      }}
-                    >
-                      Welcome!
-                    </h1>
-                    <div className="flex justify-end items-center min-w-0 pt-2">
-                      <img
-                        src={SLIDE4_THUMB}
-                        alt=""
-                        width={96}
-                        height={96}
-                        className="object-cover shrink-0"
-                        style={{ width: 88, height: 88, minWidth: 88, minHeight: 88 }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <h1
-                  className="font-heading font-extrabold text-[2.25rem] sm:text-[2.5rem] leading-tight text-forest text-center mb-2"
-                  style={{
-                    fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
-                    letterSpacing: "-2.3px",
-                  }}
-                >
-                  Welcome!
-                </h1>
-              )}
-              <p
-                className={`text-center text-login-muted text-[15px] font-body ${
-                  native ? "mb-3" : "mb-8"
-                }`}
-                style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-              >
-                Please log in to continue
-              </p>
+        <label
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--ink-muted)",
+            paddingLeft: 16,
+          }}
+        >
+          Email address
+        </label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@email.com"
+          required
+          autoComplete="email"
+          autoFocus
+          style={{
+            padding: "14px 16px",
+            borderRadius: 12,
+            border: "1.5px solid var(--line)",
+            background: "#fff",
+            fontSize: 15,
+            color: "var(--ink)",
+            outline: "none",
+          }}
+        />
+        {error && (
+          <p style={{ fontSize: 13, color: "var(--terracotta)", margin: 0 }}>
+            {error}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn btn-primary"
+          style={{ marginTop: 4 }}
+        >
+          {loading ? "Sending…" : "Send magic link"}
+        </button>
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: 12,
+            color: "var(--ink-muted)",
+            margin: 0,
+          }}
+        >
+          We'll email you a one-click link — no password needed.
+        </p>
+      </form>
 
-              <form onSubmit={handleSubmit} className={`w-full ${native ? "space-y-3" : "space-y-4"}`}>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  required
-                  autoComplete="email"
-                  className={`w-full rounded-md border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-forest/15 focus:border-forest ${
-                    native ? "py-3" : "py-3.5"
-                  }`}
-                  style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-                />
-                {error && (
-                  <p className="text-sm text-red-600" style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
-                    {error}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full rounded-md bg-login-grey text-white text-sm font-bold disabled:opacity-50 hover:opacity-95 transition-opacity ${
-                    native ? "py-3" : "py-3.5"
-                  }`}
-                  style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-                >
-                  {loading ? "Sending…" : "Log In"}
-                </button>
-              </form>
+      <div
+        style={{ height: 1, background: "var(--line)", margin: "8px 0" }}
+      />
 
-              <p
-                className={`text-center text-xs text-gray-500 ${native ? "mt-2" : "mt-3"}`}
-                style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-              >
-                We&apos;ll email you a one-click link — no password.
-              </p>
+      <div style={{ textAlign: "center" }}>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--forest)",
+            fontWeight: 700,
+            margin: "0 0 12px",
+          }}
+        >
+          New to PupChef?
+        </p>
+        <a
+          href={SIGNUP_URL}
+          className="btn btn-ghost"
+          style={{
+            width: "100%",
+            borderColor: "var(--orange)",
+            color: "var(--orange)",
+            textDecoration: "none",
+          }}
+        >
+          Build your plan
+        </a>
+      </div>
+    </div>
+  ) : (
+    <div
+      style={{
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      <div
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: "50%",
+          background: "rgba(143,166,138,0.16)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto",
+          color: "var(--sage)",
+        }}
+      >
+        <Check size={28} strokeWidth={2.5} />
+      </div>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 400,
+          fontSize: 32,
+          letterSpacing: "-0.025em",
+          color: "var(--forest)",
+          margin: 0,
+        }}
+      >
+        Check your email
+      </h1>
+      <p
+        style={{
+          fontSize: 14,
+          color: "var(--ink-muted)",
+          margin: 0,
+          lineHeight: 1.5,
+        }}
+      >
+        We sent a login link to
+        <br />
+        <strong style={{ color: "var(--forest)" }}>{email}</strong>
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          setSent(false);
+          setError("");
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "var(--orange-dark)",
+          fontWeight: 700,
+          fontSize: 13,
+          cursor: "pointer",
+          marginTop: 4,
+        }}
+      >
+        Use a different email
+      </button>
+    </div>
+  );
 
-              <div className={`border-t border-gray-200 w-full ${native ? "my-4" : "my-10"}`} />
+  // ── Native (Capacitor): clean centered prototype layout, no marketing chrome
+  if (native) {
+    return (
+      <div className="min-h-screen cream-paper flex flex-col">
+        <NativeLoginAnnouncementBar />
+        <main
+          className="flex-1 flex flex-col items-stretch px-6 pb-8 pt-6"
+          style={{ minHeight: 0 }}
+        >
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 8, marginBottom: 56 }}>
+            <img
+              src="/logo.png"
+              alt="PupChef"
+              style={{ height: 48, width: "auto" }}
+            />
+          </div>
+          <div className="w-full max-w-[400px] mx-auto">{formCard}</div>
+        </main>
+      </div>
+    );
+  }
 
-              <h2
-                className={`text-center text-forest font-bold text-base ${native ? "mb-2" : "mb-4"}`}
-                style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-              >
-                New to Pupchef?
-              </h2>
-              <a
-                href={SIGNUP_URL}
-                className={`flex w-full items-center justify-center rounded-md border-2 border-coral bg-transparent text-sm font-bold text-coral hover:bg-coral/5 transition-colors ${
-                  native ? "py-2.5" : "py-3.5"
-                }`}
-                style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-              >
-                Build Your Plan
-              </a>
-            </>
-          ) : (
-            <div className="text-center space-y-5 w-full">
-              <div className="w-14 h-14 bg-forest/10 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-2xl" aria-hidden>
-                  ✉️
-                </span>
-              </div>
-              <h1
-                className="font-heading font-extrabold text-2xl text-forest"
-                style={{
-                  fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
-                  letterSpacing: "-1px",
-                }}
-              >
-                Check your email
-              </h1>
-              <p
-                className="text-sm text-login-muted leading-relaxed"
-                style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-              >
-                If an account exists for <strong className="text-forest">{email}</strong>, we sent a login link. Click
-                it to sign in.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSent(false);
-                  setError("");
-                }}
-                className="text-sm font-bold text-coral hover:text-coral-dark transition-colors"
-                style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif" }}
-              >
-                Use a different email
-              </button>
-            </div>
-          )}
-        </div>
+  // ── Web browser: keep marketing chrome, render redesigned form in the middle
+  return (
+    <div className="min-h-screen flex flex-col cream-paper">
+      <MarketingAnnouncementBar />
+      <MarketingNavbar />
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 w-full py-10 sm:py-16">
+        <div className="w-full max-w-[400px]">{formCard}</div>
       </main>
-
-      {native ? <LoginSupportSection /> : <MarketingFooter />}
+      <MarketingFooter />
+      <div className="hidden">
+        <LoginSupportSection />
+      </div>
     </div>
   );
 }

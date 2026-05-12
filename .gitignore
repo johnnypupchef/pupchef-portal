@@ -9,3 +9,9 @@ ios/DerivedData
 android/.gradle
 android/app/build
 android/build
+
+# Design handoff (internal docs, do not deploy)
+design_handoff_*/
+
+# macOS Finder metadata
+.DS_Store

@@ -1,7 +1,20 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  User as UserIcon,
+  Phone as PhoneIcon,
+  MapPin,
+  Check,
+  Edit,
+  Bell,
+  Leaf,
+  LogOut,
+  ChevronRight,
+} from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { Card, SectionHeader } from "../components/portal-ui";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -28,28 +41,8 @@ interface AddressResult {
   longitude: number;
 }
 
-// ── Shared components ─────────────────────────────────────────────────────────
-
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-2xl border border-cream-dark shadow-sm p-5 space-y-4">
-      <h2 className="font-heading font-bold text-brand">{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-xs text-brand/60 font-body font-medium block mb-1">{label}</label>
-      {children}
-    </div>
-  );
-}
-
 const inputClass =
-  "w-full border border-cream-dark rounded-xl px-4 py-3 text-sm text-brand bg-cream focus:outline-none focus:ring-2 focus:ring-coral/40 focus:border-coral transition font-body";
+  "w-full bg-white border border-line rounded-[12px] px-4 py-3 text-sm text-ink focus:outline-none focus:border-orange/50 transition";
 
 // ── Google Maps helpers ────────────────────────────────────────────────────────
 
@@ -194,7 +187,6 @@ function AddressPickerModal({
   const [addrType, setAddrType] = useState<AddrType>("apartment");
   const [placeName, setPlaceName] = useState("Locating your position…");
 
-  // Map state
   const mapDivRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -205,7 +197,6 @@ function AddressPickerModal({
   const geoEmirate = useRef("Dubai");
   const isDragging = useRef(false);
 
-  // Detail fields
   const [aptNum, setAptNum] = useState("");
   const [bldName, setBldName] = useState("");
   const [aptArea, setAptArea] = useState("");
@@ -223,7 +214,6 @@ function AddressPickerModal({
   const [fallbackSuggestions, setFallbackSuggestions] = useState<NominatimSuggestion[]>([]);
   const fallbackInitialized = useRef(false);
 
-  // Init Google Maps when the modal mounts
   useEffect(() => {
     ensureGoogleMaps(
       () => initMap(),
@@ -235,14 +225,12 @@ function AddressPickerModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-trigger resize when returning to map step
   useEffect(() => {
     if (step === "map" && mapRef.current && !useFallbackMap) {
       google.maps.event.trigger(mapRef.current, "resize");
     }
   }, [step, useFallbackMap]);
 
-  // Fallback search suggestions via Nominatim
   useEffect(() => {
     if (!useFallbackMap) return;
     const q = fallbackQuery.trim();
@@ -261,7 +249,7 @@ function AddressPickerModal({
         const data = (await res.json()) as NominatimSuggestion[];
         setFallbackSuggestions(Array.isArray(data) ? data : []);
       } catch {
-        // ignore transient network errors for suggestion typing
+        // ignore
       }
     }, 260);
 
@@ -284,9 +272,7 @@ function AddressPickerModal({
         setFallbackCenter([lat, lng]);
         await reverseGeocodeFallback(lat, lng);
       },
-      () => {
-        // keep Dubai fallback center
-      },
+      () => {},
       { timeout: 6000, maximumAge: 0 }
     );
   }, [useFallbackMap]);
@@ -381,7 +367,6 @@ function AddressPickerModal({
       reverseGeocode(c.lat(), c.lng());
     });
 
-    // Auto-geolocate if no initial coords
     if (initialLat == null && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -451,54 +436,50 @@ function AddressPickerModal({
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white">
       <style>{`.pac-container{z-index:99999 !important;}`}</style>
-      {/* ── Step: Map ── */}
       {step === "map" && (
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className="flex items-center gap-3 px-4 pt-4 pb-2">
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-cream border border-cream-dark text-brand font-bold text-lg"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-cream-light border border-line text-ink font-bold text-lg"
             >
               ←
             </button>
-            <h2 className="font-heading font-extrabold text-brand text-lg">Set delivery location</h2>
+            <h2 className="font-display font-normal text-forest text-xl">Set delivery location</h2>
           </div>
-          <p className="px-4 text-xs text-brand/50 font-body mb-2">
-            📍 Please be precise — we use this pin for your deliveries.
+          <p className="px-4 text-xs text-ink-muted mb-2">
+            Please be precise — we use this pin for your deliveries.
           </p>
           {mapError && (
-            <p className="px-4 text-xs text-red-600 font-body mb-2">{mapError}</p>
+            <p className="px-4 text-xs text-terracotta mb-2">{mapError}</p>
           )}
 
-          {/* Map */}
-          <div className="relative flex-1 mx-4 rounded-2xl overflow-hidden shadow-md bg-gray-200">
-            {/* Floating search */}
+          <div className="relative flex-1 mx-4 rounded-[20px] overflow-hidden shadow-md bg-gray-200">
             <div className="absolute top-3 left-3 right-3 z-20">
               <div className="flex items-center bg-white rounded-xl shadow-lg px-3">
-              <span className="text-sm opacity-50 mr-2">🔍</span>
-              <input
-                ref={searchRef}
-                type="text"
-                placeholder="Search address, building or community…"
-                className="flex-1 py-3 text-sm bg-transparent outline-none text-brand font-body"
-                autoComplete="off"
-                disabled={Boolean(mapError) && !useFallbackMap}
-                value={useFallbackMap ? fallbackQuery : undefined}
-                onChange={
-                  useFallbackMap
-                    ? (e) => setFallbackQuery(e.target.value)
-                    : undefined
-                }
-              />
-            </div>
+                <span className="text-sm opacity-50 mr-2">🔍</span>
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="Search address, building or community…"
+                  className="flex-1 py-3 text-sm bg-transparent outline-none text-ink"
+                  autoComplete="off"
+                  disabled={Boolean(mapError) && !useFallbackMap}
+                  value={useFallbackMap ? fallbackQuery : undefined}
+                  onChange={
+                    useFallbackMap
+                      ? (e) => setFallbackQuery(e.target.value)
+                      : undefined
+                  }
+                />
+              </div>
               {useFallbackMap && fallbackSuggestions.length > 0 && (
-                <div className="mt-2 bg-white rounded-xl shadow-lg border border-cream-dark overflow-hidden max-h-56 overflow-y-auto">
+                <div className="mt-2 bg-white rounded-xl shadow-lg border border-line overflow-hidden max-h-56 overflow-y-auto">
                   {fallbackSuggestions.map((s) => (
                     <button
                       key={s.place_id}
                       type="button"
-                      className="w-full text-left px-3 py-2 text-xs text-brand hover:bg-cream border-b border-cream-dark last:border-0"
+                      className="w-full text-left px-3 py-2 text-xs text-ink hover:bg-cream-light border-b border-line last:border-0"
                       onClick={async () => {
                         const lat = Number(s.lat);
                         const lng = Number(s.lon);
@@ -518,18 +499,16 @@ function AddressPickerModal({
                 </div>
               )}
             </div>
-            {/* Map canvas */}
             {!useFallbackMap && (
               <>
                 <div ref={mapDivRef} style={{ width: "100%", height: "100%" }} />
-                {/* Fixed center pin */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ bottom: 64 }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 28 40"
                     style={{ width: 36, transform: "translateY(-50%)", filter: "drop-shadow(0 4px 8px rgba(0,0,0,.3))" }}
                   >
-                    <path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 26 14 26S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="#E63946" />
+                    <path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 26 14 26S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="#F2674B" />
                     <circle cx="14" cy="14" r="5.5" fill="#fff" />
                   </svg>
                 </div>
@@ -555,18 +534,18 @@ function AddressPickerModal({
                 <CircleMarker
                   center={fallbackCenter}
                   radius={10}
-                  pathOptions={{ color: "#0f766e", fillColor: "#14b8a6", fillOpacity: 0.85 }}
+                  pathOptions={{ color: "#173B33", fillColor: "#F2674B", fillOpacity: 0.85 }}
                 />
               </MapContainer>
             )}
-            {/* Bottom place card */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2 flex items-center gap-2" style={{ minHeight: 56 }}>
-              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">📍</div>
-              <span className="flex-1 text-xs text-gray-600 font-body leading-tight">{placeName}</span>
+            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-line px-3 py-2 flex items-center gap-2" style={{ minHeight: 56 }}>
+              <div className="w-8 h-8 rounded-lg bg-cream-light flex items-center justify-center text-sm flex-shrink-0">📍</div>
+              <span className="flex-1 text-xs text-ink-muted leading-tight">{placeName}</span>
               <button
                 onClick={handleMapNext}
                 disabled={Boolean(mapError) && !useFallbackMap}
-                className="flex-shrink-0 bg-brand text-white rounded-xl px-5 py-2 text-sm font-heading font-bold"
+                className="flex-shrink-0 btn btn-primary"
+                style={{ padding: "8px 18px", fontSize: 13 }}
               >
                 Next
               </button>
@@ -576,124 +555,71 @@ function AddressPickerModal({
         </div>
       )}
 
-      {/* ── Step: Address type ── */}
       {step === "type" && (
         <div className="flex flex-col h-full px-4 pt-4">
           <button
             onClick={() => setStep("map")}
-            className="text-brand/60 text-sm font-body font-medium mb-4 text-left"
+            className="text-ink-muted text-sm mb-4 text-left"
           >
             ← Back
           </button>
-          <h2 className="font-heading font-extrabold text-brand text-xl mb-5">Choose address type</h2>
-          <div className="border border-cream-dark rounded-2xl overflow-hidden">
+          <h2 className="font-display font-normal text-forest text-2xl mb-5">Choose address type</h2>
+          <div className="border border-line rounded-[20px] overflow-hidden bg-white">
             {(
               [
-                {
-                  type: "apartment" as AddrType,
-                  label: "Apartment",
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-brand">
-                      <rect x="4" y="2" width="16" height="20" rx="1" />
-                      <path d="M9 22v-4h6v4" />
-                      <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
-                    </svg>
-                  ),
-                },
-                {
-                  type: "house" as AddrType,
-                  label: "House / Villa",
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-brand">
-                      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                      <path d="M9 21V12h6v9" />
-                    </svg>
-                  ),
-                },
+                { type: "apartment" as AddrType, label: "Apartment" },
+                { type: "house" as AddrType, label: "House / Villa" },
               ] as const
-            ).map(({ type, label, icon }) => (
+            ).map(({ type, label }) => (
               <button
                 key={type}
                 onClick={() => handleSelectType(type)}
-                className="flex items-center gap-4 w-full px-5 py-4 bg-white border-b border-cream-dark last:border-0 text-left hover:bg-cream transition-colors"
+                className="flex items-center gap-4 w-full px-5 py-4 bg-white border-b border-line-soft last:border-0 text-left hover:bg-cream-light transition-colors"
               >
                 <span className="w-10 h-10 bg-cream rounded-xl flex items-center justify-center flex-shrink-0">
-                  {icon}
+                  <MapPin size={18} strokeWidth={2} className="text-forest" />
                 </span>
-                <span className="flex-1 font-heading font-semibold text-brand text-base">{label}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-brand/30">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
+                <span className="flex-1 text-ink text-base font-bold">{label}</span>
+                <ChevronRight size={16} className="text-ink-faint" />
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── Step: Details ── */}
       {step === "details" && (
         <div className="flex flex-col h-full px-4 pt-4">
           <button
             onClick={() => setStep("type")}
-            className="text-brand/60 text-sm font-body font-medium mb-4 text-left"
+            className="text-ink-muted text-sm mb-4 text-left"
           >
             ← Back
           </button>
-          <h2 className="font-heading font-extrabold text-brand text-xl mb-5">Add address details</h2>
+          <h2 className="font-display font-normal text-forest text-2xl mb-5">Add address details</h2>
 
           <div className="space-y-3 flex-1">
             {addrType === "apartment" ? (
               <>
-                <input
-                  className={inputClass}
-                  placeholder="Apartment number *"
-                  value={aptNum}
-                  onChange={(e) => setAptNum(e.target.value)}
-                />
-                <input
-                  className={inputClass}
-                  placeholder="Building name *"
-                  value={bldName}
-                  onChange={(e) => setBldName(e.target.value)}
-                />
-                <input
-                  className={inputClass}
-                  placeholder="Area / Community *"
-                  value={aptArea}
-                  onChange={(e) => setAptArea(e.target.value)}
-                />
+                <input className={inputClass} placeholder="Apartment number *" value={aptNum} onChange={(e) => setAptNum(e.target.value)} />
+                <input className={inputClass} placeholder="Building name *" value={bldName} onChange={(e) => setBldName(e.target.value)} />
+                <input className={inputClass} placeholder="Area / Community *" value={aptArea} onChange={(e) => setAptArea(e.target.value)} />
               </>
             ) : (
               <>
-                <input
-                  className={inputClass}
-                  placeholder="House / Villa number *"
-                  value={villaNum}
-                  onChange={(e) => setVillaNum(e.target.value)}
-                />
-                <input
-                  className={inputClass}
-                  placeholder="Street name (optional)"
-                  value={streetName}
-                  onChange={(e) => setStreetName(e.target.value)}
-                />
-                <input
-                  className={inputClass}
-                  placeholder="Community *"
-                  value={community}
-                  onChange={(e) => setCommunity(e.target.value)}
-                />
+                <input className={inputClass} placeholder="House / Villa number *" value={villaNum} onChange={(e) => setVillaNum(e.target.value)} />
+                <input className={inputClass} placeholder="Street name (optional)" value={streetName} onChange={(e) => setStreetName(e.target.value)} />
+                <input className={inputClass} placeholder="Community *" value={community} onChange={(e) => setCommunity(e.target.value)} />
               </>
             )}
             {detailError && (
-              <p className="text-xs text-red-600 font-body">{detailError}</p>
+              <p className="text-xs text-terracotta">{detailError}</p>
             )}
           </div>
 
           <div className="pb-6 pt-4">
             <button
               onClick={handleConfirm}
-              className="w-full bg-brand text-white rounded-2xl py-4 text-sm font-heading font-bold hover:bg-brand/90 transition-colors"
+              className="btn btn-primary w-full"
             >
               Confirm address
             </button>
@@ -704,14 +630,151 @@ function AddressPickerModal({
   );
 }
 
+// ── Inline editable row ────────────────────────────────────────────────────────
+
+function InlineFieldRow({
+  icon,
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  isLast,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  isLast?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 0",
+        borderBottom: isLast ? "none" : "1px solid var(--line-soft)",
+      }}
+    >
+      <div style={{ color: "var(--ink-muted)", flexShrink: 0 }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--ink-muted)",
+          }}
+        >
+          {label}
+        </div>
+        <input
+          type={type}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            width: "100%",
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            padding: 0,
+            marginTop: 2,
+            fontSize: 14,
+            color: "var(--ink)",
+            fontWeight: 600,
+            fontFamily: "inherit",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Mini map preview using Google Static Maps ──────────────────────────────────
+
+function MiniMapPreview({ lat, lng }: { lat: number | null; lng: number | null }) {
+  // No pin set yet — render the soft placeholder.
+  if (lat == null || lng == null) {
+    return (
+      <div
+        style={{
+          margin: "0 18px 16px",
+          borderRadius: 14,
+          overflow: "hidden",
+          border: "1px solid var(--line)",
+          position: "relative",
+          height: 120,
+          background: "linear-gradient(135deg, #DDE5DC 0%, #C9D5C8 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--ink-muted)",
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+        }}
+      >
+        Set your pin to preview the map
+      </div>
+    );
+  }
+
+  // 2x scale for retina; marker color matches our orange brand.
+  const center = `${lat},${lng}`;
+  const url =
+    `https://maps.googleapis.com/maps/api/staticmap` +
+    `?center=${center}` +
+    `&zoom=16` +
+    `&size=320x120` +
+    `&scale=2` +
+    `&maptype=roadmap` +
+    `&markers=color:0xF2674B%7C${center}` +
+    `&key=${MAPS_API_KEY}`;
+
+  return (
+    <div
+      style={{
+        margin: "0 18px 16px",
+        borderRadius: 14,
+        overflow: "hidden",
+        border: "1px solid var(--line)",
+        position: "relative",
+        height: 120,
+        background: "linear-gradient(135deg, #DDE5DC 0%, #C9D5C8 100%)",
+      }}
+    >
+      <img
+        src={url}
+        alt="Delivery location"
+        loading="lazy"
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    </div>
+  );
+}
+
 // ── Main settings page ─────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const { person } = useAuth();
+  const { person, logout } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState<ProfileData>({
-    first_name: null, last_name: null, phone: null,
-    area: null, address_line_1: null, address_line_2: null,
-    city: null, emirate: null, latitude: null, longitude: null,
+    first_name: null,
+    last_name: null,
+    phone: null,
+    area: null,
+    address_line_1: null,
+    address_line_2: null,
+    city: null,
+    emirate: null,
+    latitude: null,
+    longitude: null,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -756,24 +819,22 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleSignOut() {
+    try {
+      await api.post("/api/portal/logout");
+    } catch {
+      /* optional */
+    }
+    await logout();
+    navigate("/login");
+  }
+
   function set(field: keyof ProfileData, value: string) {
     setForm((f) => ({ ...f, [field]: value || null }));
   }
 
   function handleAddressSaved(result: AddressResult) {
-    setForm((f) => ({
-      ...f,
-      address_line_1: result.address_line_1,
-      address_line_2: result.address_line_2,
-      area: result.area,
-      city: result.city,
-      emirate: result.emirate,
-      latitude: result.latitude,
-      longitude: result.longitude,
-    }));
-    setShowAddressPicker(false);
-    // Auto-save after address update
-    api.patch("/api/portal/profile", {
+    const next = {
       ...form,
       address_line_1: result.address_line_1,
       address_line_2: result.address_line_2,
@@ -782,22 +843,23 @@ export default function SettingsPage() {
       emirate: result.emirate,
       latitude: result.latitude,
       longitude: result.longitude,
-    }).catch(() => {});
+    };
+    setForm(next);
+    setShowAddressPicker(false);
+    api.patch("/api/portal/profile", next).catch(() => {});
   }
 
-  /** Format address for display in the collapsed card */
-  function formatAddress(): string | null {
-    const parts = [form.address_line_1, form.address_line_2, form.area]
-      .filter(Boolean)
-      .join(", ");
-    return parts || null;
-  }
+  if (loading)
+    return (
+      <div className="cream-paper min-h-screen flex items-center justify-center text-ink-muted">
+        Loading…
+      </div>
+    );
 
-  if (loading) return <div className="text-center py-16 text-brand/40 font-body">Loading…</div>;
+  const pinSet = form.latitude != null && form.longitude != null;
 
   return (
     <>
-      {/* Address picker modal — full-screen */}
       {showAddressPicker && (
         <AddressPickerModal
           onClose={() => setShowAddressPicker(false)}
@@ -807,109 +869,244 @@ export default function SettingsPage() {
         />
       )}
 
-      <div className="space-y-5">
-        <div>
-          <h1 className="font-heading font-extrabold text-2xl text-brand">Settings</h1>
-          <p className="text-sm text-brand/50 font-body mt-0.5">{person?.email}</p>
+      <div
+        className="screen cream-paper"
+        style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}
+      >
+        <div style={{ padding: "8px 4px 0" }}>
+          <div className="page-eyebrow" style={{ marginBottom: 4 }}>
+            Account
+          </div>
+          <h1 className="page-h1">Settings</h1>
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+            {person?.email}
+          </p>
         </div>
 
         {saved && (
-          <div className="bg-forest/10 border border-forest/20 rounded-xl p-3 text-sm text-forest font-body font-medium">
-            ✓ Profile updated successfully
+          <div
+            style={{
+              background: "rgba(143,166,138,0.16)",
+              color: "#4A6646",
+              border: "1px solid rgba(143,166,138,0.3)",
+              borderRadius: 12,
+              padding: "10px 14px",
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            ✓ Profile updated
           </div>
         )}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 font-body">
+          <div
+            style={{
+              background: "rgba(200,84,58,0.08)",
+              color: "var(--terracotta)",
+              border: "1px solid rgba(200,84,58,0.2)",
+              borderRadius: 12,
+              padding: "10px 14px",
+              fontSize: 13,
+            }}
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={save} className="space-y-5">
-          <SectionCard title="Personal Info">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="First name">
-                <input
-                  type="text"
-                  value={form.first_name ?? ""}
-                  onChange={(e) => set("first_name", e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Last name">
-                <input
-                  type="text"
-                  value={form.last_name ?? ""}
-                  onChange={(e) => set("last_name", e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-            </div>
-            <Field label="Phone">
-              <input
-                type="tel"
-                value={form.phone ?? ""}
-                onChange={(e) => set("phone", e.target.value)}
-                className={inputClass}
+        <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div>
+            <SectionHeader title="Personal info" />
+            <Card padding="6px 18px">
+              <InlineFieldRow
+                icon={<UserIcon size={16} />}
+                label="First name"
+                value={form.first_name ?? ""}
+                onChange={(v) => set("first_name", v)}
+                placeholder="First name"
               />
-            </Field>
-          </SectionCard>
+              <InlineFieldRow
+                icon={<UserIcon size={16} />}
+                label="Last name"
+                value={form.last_name ?? ""}
+                onChange={(v) => set("last_name", v)}
+                placeholder="Last name"
+              />
+              <InlineFieldRow
+                icon={<PhoneIcon size={16} />}
+                label="Phone"
+                value={form.phone ?? ""}
+                onChange={(v) => set("phone", v)}
+                placeholder="+971 …"
+                type="tel"
+                isLast
+              />
+            </Card>
+          </div>
 
-          {/* ── Delivery address card ── */}
-          <SectionCard title="Delivery Address">
-            {formatAddress() ? (
-              /* Collapsed address display */
-              <div className="flex items-start gap-3 bg-cream rounded-xl p-4 border border-cream-dark">
-                <div className="w-9 h-9 rounded-xl bg-white border border-cream-dark flex items-center justify-center flex-shrink-0 text-base">
-                  📍
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-heading font-semibold text-brand leading-snug">
-                    {form.address_line_1}
-                  </p>
-                  {(form.address_line_2 || form.area) && (
-                    <p className="text-xs text-brand/50 font-body mt-0.5">
-                      {[form.address_line_2, form.area].filter(Boolean).join(", ")}
-                    </p>
-                  )}
-                  {form.latitude != null && form.longitude != null && (
-                    <p className="text-xs text-brand/30 font-body mt-1">
-                      Pin set ✓
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAddressPicker(true)}
-                  className="flex-shrink-0 text-xs font-heading font-semibold text-brand border border-brand/20 rounded-lg px-3 py-1.5 hover:bg-white transition-colors"
+          <div>
+            <SectionHeader title="Delivery address" />
+            <Card padding="0">
+              <div
+                style={{
+                  padding: "16px 18px",
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "flex-start",
+                }}
+              >
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: "var(--cream)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--forest)",
+                    flexShrink: 0,
+                  }}
                 >
-                  Edit
-                </button>
+                  <MapPin size={20} strokeWidth={2} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {form.address_line_1 ? (
+                    <>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)" }}>
+                        {form.address_line_1}
+                      </div>
+                      {(form.address_line_2 || form.city) && (
+                        <div
+                          style={{
+                            fontSize: 13,
+                            color: "var(--ink-muted)",
+                            marginTop: 2,
+                          }}
+                        >
+                          {[form.address_line_2, form.city].filter(Boolean).join(", ")}
+                        </div>
+                      )}
+                      {pinSet && (
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "var(--sage)",
+                            fontWeight: 600,
+                            marginTop: 8,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Check size={12} strokeWidth={2.5} /> Pin set on map
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ fontSize: 13, color: "var(--ink-muted)" }}>
+                      No delivery address saved yet.
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              /* No address yet */
-              <div className="text-center py-4">
-                <p className="text-sm text-brand/40 font-body mb-3">No delivery address saved yet.</p>
-              </div>
-            )}
+              <MiniMapPreview lat={form.latitude} lng={form.longitude} />
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ width: "calc(100% - 36px)", margin: "0 18px 18px" }}
+                onClick={() => setShowAddressPicker(true)}
+              >
+                <Edit size={16} strokeWidth={2} />
+                {form.address_line_1 ? "Update address" : "Add address"}
+              </button>
+            </Card>
+          </div>
 
-            <button
-              type="button"
-              onClick={() => setShowAddressPicker(true)}
-              className="w-full border-2 border-dashed border-brand/20 rounded-xl py-3 text-sm font-heading font-semibold text-brand/60 hover:border-brand/40 hover:text-brand/80 transition-colors flex items-center justify-center gap-2"
-            >
-              <span className="text-base">＋</span>
-              {formatAddress() ? "Update Address" : "Add Delivery Address"}
-            </button>
-          </SectionCard>
+          <div>
+            <SectionHeader title="Preferences" />
+            <Card padding="6px 18px">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 0",
+                  borderBottom: "1px solid var(--line-soft)",
+                }}
+              >
+                <div style={{ color: "var(--ink-muted)" }}>
+                  <Bell size={16} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--ink-muted)",
+                    }}
+                  >
+                    Notifications
+                  </div>
+                  <div style={{ fontSize: 14, color: "var(--ink)", fontWeight: 600, marginTop: 2 }}>
+                    Email & push
+                  </div>
+                </div>
+                <ChevronRight size={16} color="var(--ink-faint)" />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 0",
+                }}
+              >
+                <div style={{ color: "var(--ink-muted)" }}>
+                  <Leaf size={16} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--ink-muted)",
+                    }}
+                  >
+                    Packaging
+                  </div>
+                  <div style={{ fontSize: 14, color: "var(--ink)", fontWeight: 600, marginTop: 2 }}>
+                    Recyclable cool box
+                  </div>
+                </div>
+                <ChevronRight size={16} color="var(--ink-faint)" />
+              </div>
+            </Card>
+          </div>
 
           <button
             type="submit"
+            className="btn btn-primary"
+            style={{ width: "100%" }}
             disabled={saving}
-            className="w-full bg-coral text-white rounded-2xl py-4 text-sm font-heading font-bold hover:bg-coral-dark disabled:opacity-50 transition-colors"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>
+
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ width: "100%", marginTop: 4 }}
+            onClick={handleSignOut}
+          >
+            <LogOut size={16} strokeWidth={2} /> Sign out
+          </button>
         </form>
+
+        <div style={{ height: 8 }} />
       </div>
     </>
   );
