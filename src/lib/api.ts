@@ -64,6 +64,29 @@ export function invalidateCache(path?: string): void {
   else memCache.clear();
 }
 
+// Track in-flight prefetches so duplicate hover/mount calls coalesce.
+const inflight = new Map<string, Promise<unknown>>();
+
+/**
+ * Fire-and-forget GET that populates the cache without surfacing errors.
+ * Used to warm tab data ahead of navigation. Safe to call repeatedly —
+ * concurrent calls share the same request.
+ */
+export function prefetch(path: string): void {
+  if (memCache.has(path) || inflight.has(path)) return;
+  const p = request<unknown>(path)
+    .then((d) => {
+      setCache(path, d);
+    })
+    .catch(() => {
+      /* swallow — useApiQuery will surface real errors on actual nav */
+    })
+    .finally(() => {
+      inflight.delete(path);
+    });
+  inflight.set(path, p);
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>

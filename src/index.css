@@ -322,5 +322,5 @@ textarea {
   }
 }
 .fade-up {
-  animation: fadeUp 0.4s ease both;
+  animation: fadeUp 0.15s ease both;
 }

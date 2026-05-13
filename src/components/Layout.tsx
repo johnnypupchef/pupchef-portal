@@ -1,26 +1,48 @@
+import { useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { Home, PawPrint, Truck, RefreshCw, User, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { api } from "../lib/api";
+import { api, prefetch } from "../lib/api";
 
 type NavItem = {
   to: string;
   label: string;
   shortLabel: string;
   Icon: typeof Home;
+  /** API endpoints to warm in cache before/on navigation. */
+  prefetch?: string[];
 };
 
 const navItems: NavItem[] = [
-  { to: "/account", label: "Home", shortLabel: "Home", Icon: Home },
-  { to: "/dogs", label: "My Dogs", shortLabel: "Dogs", Icon: PawPrint },
-  { to: "/deliveries", label: "Schedule", shortLabel: "Schedule", Icon: Truck },
-  { to: "/subscription", label: "Plan", shortLabel: "Plan", Icon: RefreshCw },
+  { to: "/account", label: "Home", shortLabel: "Home", Icon: Home, prefetch: ["/api/portal/account"] },
+  { to: "/dogs", label: "My Dogs", shortLabel: "Dogs", Icon: PawPrint, prefetch: ["/api/portal/account", "/api/portal/recipe-stack"] },
+  { to: "/deliveries", label: "Schedule", shortLabel: "Schedule", Icon: Truck, prefetch: ["/api/portal/deliveries"] },
+  { to: "/subscription", label: "Plan", shortLabel: "Plan", Icon: RefreshCw, prefetch: ["/api/portal/subscription"] },
   { to: "/settings", label: "You", shortLabel: "You", Icon: User },
 ];
 
 export default function Layout() {
   const { person, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Warm all tab data once on mount so first click on any tab is instant.
+  // The prefetch helper deduplicates and silently no-ops on errors.
+  useEffect(() => {
+    const seen = new Set<string>();
+    for (const item of navItems) {
+      for (const path of item.prefetch ?? []) {
+        if (seen.has(path)) continue;
+        seen.add(path);
+        prefetch(path);
+      }
+    }
+  }, []);
+
+  // Prefetch handler used on hover/touchstart of each nav link.
+  function warmTab(paths: readonly string[] | undefined) {
+    if (!paths) return;
+    for (const p of paths) prefetch(p);
+  }
 
   async function handleLogout() {
     try {
@@ -46,11 +68,13 @@ export default function Layout() {
             <img src="/logo.png" alt="PupChef" className="h-8 w-auto" />
           </div>
           <nav className="flex flex-col gap-1">
-            {navItems.map(({ to, label, Icon }) => (
+            {navItems.map(({ to, label, Icon, prefetch: prefetchPaths }) => (
               <NavLink
                 key={to}
                 to={to}
                 end
+                onMouseEnter={() => warmTab(prefetchPaths)}
+                onTouchStart={() => warmTab(prefetchPaths)}
                 className={({ isActive }) =>
                   `group flex items-center gap-3 px-3 py-2.5 rounded-[14px] transition-colors ${
                     isActive
@@ -129,13 +153,15 @@ export default function Layout() {
           justifyContent: "space-around",
         }}
       >
-        {navItems.map(({ to, shortLabel, Icon }) => (
+        {navItems.map(({ to, shortLabel, Icon, prefetch: prefetchPaths }) => (
           <NavLink
             key={to}
             to={to}
             end
             className="flex-1"
             style={{ textDecoration: "none" }}
+            onTouchStart={() => warmTab(prefetchPaths)}
+            onMouseEnter={() => warmTab(prefetchPaths)}
           >
             {({ isActive }) => (
               <div
